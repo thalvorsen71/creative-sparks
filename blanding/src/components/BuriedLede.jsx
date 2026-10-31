@@ -1,10 +1,11 @@
 import corpus from '../corpus/corpus.json';
 import { Label, SectionHead } from './ui.jsx';
 
-const POS = { lead: 'the first sentence', early: 'near the top', buried: 'further down' };
+const POS = { lead: 'the first sentence', early: 'in the first third', buried: 'further down' };
 
 export default function BuriedLede({ report }) {
   const b = report.buriedLede;
+  const tentative = b?.confidence === 'tentative';
   const loc = corpus?.proofLocation;
   const total = report.stats?.sentences;
   const sentence = b && report.sentences?.[b.sentenceIndex];
@@ -13,13 +14,14 @@ export default function BuriedLede({ report }) {
 
   return (
     <div>
-      <SectionHead kicker="The Buried Lede" title={b ? 'The one thing only you could say' : 'We could not find something only you could say.'}>
+      <SectionHead kicker="The Buried Lede" title={b ? (tentative ? 'A candidate, not a verdict' : 'The one thing only you could say') : 'We could not find something only you could say.'}>
         {b ? null : `We looked for something only you could say. We did not find it on this page.${['breathing', 'unmistakable'].includes(report.band?.id) ? ' Your detail may be everywhere, which is also an answer.' : ''}`}
       </SectionHead>
       {b && (
         <div className="grid gap-6 md:grid-cols-[1fr,16rem]">
           <div>
-            <p className="font-display text-4xl leading-tight sm:text-5xl">{b.detail}</p>
+            <p className={tentative ? 'font-display text-2xl leading-snug' : 'font-display text-4xl leading-tight sm:text-5xl'}>{b.detail}</p>
+            {tentative && <p className="mt-3 font-semibold">We are not sure about this one. You will know in two seconds whether it is right.</p>}
             <p className="mt-4 max-w-xl text-smoke">{b.why}</p>
           </div>
           <div className="self-start border-t border-ink pt-3 md:border-l md:border-t-0 md:pl-6 md:pt-0">
