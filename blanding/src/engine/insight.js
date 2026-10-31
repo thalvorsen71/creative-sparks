@@ -1,7 +1,9 @@
 // The insight layer (CONTRACT Amendment 2): themes, lead promise, proof kinds, buried lede, the one line.
 // Themes are Tracey's T0 themes (config/promise_rules_v3.md). Shares and examples come only from corpus.json.
 import CORPUS from '../corpus/corpus.json' with { type: 'json' };
-import { detailScore, findDetails, KIND_PHRASE } from './details.js';
+import { detailScore, findDetails, KIND_PHRASE, TRIVIA } from './details.js';
+
+const TRIVIAL_FIRST = (t) => TRIVIA.test(t);
 
 // ---------- Themes ----------
 // key: the T0 v3 theme id. Resolved against corpus.json at load, so the DATA lane's ids win.
@@ -104,8 +106,10 @@ function topTheme(scores) {
 // ---------- Proof kinds (T0 evidence_kind) ----------
 const THIRD_PARTY = /\b(?:U\.S\. News|Princeton Review|Forbes|Fiske|Niche|Carnegie|Fulbright|Rhodes|Marshall|Truman|Goldwater|Pulitzer|Nobel|MacArthur|Guggenheim|NSF|NIH|accredited by|ranked|named (?:one of|a|the) .{0,40} by|according to)\b/i;
 const OUTCOME = /(?:\d[\d,.]*\s?(?:%|percent)|\$\d[\d,]*)[^.!?]{0,80}\b(?:graduates?|alumni|employed|placed|hired|went on|admitted|accepted|retention|graduation|salary|earn|class of)\b|\b(?:graduates?|alumni|class of \d{4})\b[^.!?]{0,80}(?:\d[\d,.]*\s?(?:%|percent)|\$\d[\d,]*|\b\d+ (?:went|go|were|are|got|earned|landed))/i;
-const POLICY = /\b(?:guarantee[sd]?|policy|pledge|we cover|no-loan|meets? full (?:demonstrated )?need|free tuition|tuition-free|every student (?:receives|gets|is guaranteed)|is free for|covers? (?:full )?tuition)\b/i;
+const POLICY = /\b(?:pays? no tuition|guarantee[sd]?|policy|pledge|we cover|no-loan|meets? full (?:demonstrated )?need|free tuition|tuition-free|every student (?:receives|gets|is guaranteed)|is free for|covers? (?:full )?tuition)\b/i;
 const STORY = /\b(?:Professor|Prof\.|Dr\.|Coach|Dean)\s+\p{Lu}|\b(?:last (?:summer|spring|fall|year|week)|this (?:summer|spring|fall)|when (?:she|he|they))\b/iu;
+
+const MECHANISM_KINDS = new Set(['named program', 'requirement', 'structure', 'ritual', 'mechanism', 'place', 'policy', 'first']);
 
 function proofKindFor(sentence, details) {
   const t = sentence.text;
@@ -113,8 +117,9 @@ function proofKindFor(sentence, details) {
   if (OUTCOME.test(t)) return 'reported_outcome';
   if (POLICY.test(t)) return 'published_policy';
   if (STORY.test(t)) return 'example_or_story';
-  if (details.length || sentence.isProof) return 'operating_mechanism';
-  return 'none';
+  // A name or a number is not a mechanism. A Starbucks is not a mechanism.
+  if (details.some((d) => MECHANISM_KINDS.has(d.kind) && d.w >= 2)) return 'operating_mechanism';
+  return null;
 }
 
 // ---------- helpers ----------
@@ -170,7 +175,16 @@ export function buildInsight(sentences) {
     const start = hash(sentences[leadIdx].text) % ex.length;
     examples = [...ex.slice(start), ...ex.slice(0, start)].slice(0, 3);
   }
+  // Why there is no lead promise, so the UI can say something true and kind about it.
+  let reason = null;
+  if (leadIdx === null) {
+    const anyPromise = sentences.some((x) => x.isPromise);
+    const proofFirst = n > 0 && (sentences.every((x) => !x.swappable) || sentences[0].isProof
+      || (per[0].detail >= 2 && !TRIVIAL_FIRST(sentences[0].text)));
+    reason = !anyPromise && proofFirst ? 'proof_first' : anyPromise ? 'unclassified' : 'no_promise';
+  }
   const lead = {
+    reason,
     themeId: leadTheme ? leadTheme.id : null,
     label: leadTheme ? leadTheme.label : null,
     sentenceIndex: leadIdx,
@@ -187,9 +201,12 @@ export function buildInsight(sentences) {
     const themeId = per[i].top ? THEMES[per[i].top.key].id : null;
     let evidenceIndex = null;
     let proofKind = 'none';
-    if (s.isProof) { evidenceIndex = i; proofKind = proofKindFor(s, per[i].details); }
-    else if (sentences[i + 1] && sentences[i + 1].isProof) { evidenceIndex = i + 1; proofKind = proofKindFor(sentences[i + 1], per[i + 1].details); }
-    else {
+    for (const j of [i, i + 1]) {
+      if (!sentences[j] || !sentences[j].isProof) continue;
+      const k = proofKindFor(sentences[j], per[j].details);
+      if (k) { evidenceIndex = j; proofKind = k; break; }
+    }
+    if (evidenceIndex === null) {
       // "Evidence" that only says the same thing again. A repeated assertion is not additional evidence.
       // Nearest other promise on the same theme, with no proof of its own.
       const order = [...Array(n).keys()].filter((j) => j !== i).sort((a, b) => Math.abs(a - i) - Math.abs(b - i) || a - b);
@@ -241,7 +258,7 @@ export function diagnosisLine({ sentences, lead, buriedLede }) {
   if (n === 1 && !buriedLede) {
     if (lead.label) {
       return lead.corpusShare != null
-        ? `One line, and it is ${lead.label.toLowerCase()}: the lead promise at ${pct(lead.corpusShare)} of the schools we read.`
+        ? `One line, and it is ${lead.label.toLowerCase()}, a lead promise at ${pct(lead.corpusShare)} of the schools we read.`
         : `One line, and it is ${lead.label.toLowerCase()}, which any school could sign.`;
     }
     return survivors ? 'One line, and any school could sign it.' : 'One line, and it is actually yours. Now write the paragraph.';
@@ -260,7 +277,9 @@ export function diagnosisLine({ sentences, lead, buriedLede }) {
     if (!leadClause) {
       return wrap
         ? `No slogan to speak of, and your best detail, ${d}, is stuck in sentence ${k} behind “${wrap}”.`
-        : `No slogan and no lead promise, and your best detail, ${d}, is sitting in sentence ${k} waiting to be promoted.`;
+        : lead.reason === 'unclassified'
+          ? `We could not tell what your opening promise is, but your best detail, ${d}, is sitting in sentence ${k} waiting to be promoted.`
+          : `No slogan and no lead promise, and your best detail, ${d}, is sitting in sentence ${k} waiting to be promoted.`;
     }
     if (wrap) return `${leadClause}, and your best detail, ${d}, is stuck in sentence ${k} behind “${wrap}”.`;
     return buriedLede.position === 'buried'
@@ -268,15 +287,17 @@ export function diagnosisLine({ sentences, lead, buriedLede }) {
       : `${leadClause}, and your best detail, ${d}, shows up one sentence too late.`;
   }
 
-  if (proofs >= Math.ceil(n * 0.6) && survivors === 0) {
-    return `All receipts, no story: ${proofs === n ? 'every line' : `${proofs} of ${n} lines`} is a number or a name, and none says how anything here actually works.`;
+  // Only when no sentence describes a mechanism or a policy. Otherwise this would scold good copy.
+  const describesHow = sentences.some((x) => POLICY.test(x.text) || findDetails(x.text, x._spec).some((d) => d.w >= 2));
+  if (proofs >= Math.ceil(n * 0.6) && survivors === 0 && !describesHow) {
+    return `All receipts, no story: ${proofs === n ? 'every line' : `${proofs} of ${n} lines`} is a number or a name, and we could not find one that says how anything here works.`;
   }
   if (survivors === n) {
     return leadClause
-      ? `${leadClause}, and nothing after it is only yours: every sentence would survive a logo swap.`
-      : 'Nothing here is only yours. Every sentence would survive a logo swap.';
+      ? `${leadClause}, and we could not find anything after it that is only yours: every sentence would survive a logo swap.`
+      : 'We could not find anything here that is only yours: every sentence would survive a logo swap.';
   }
   return leadClause
-    ? `${leadClause}, and there is no detail only you could write: ${survivors} of ${n} sentences would survive a logo swap.`
-    : `There is no detail here only you could write: ${survivors} of ${n} sentences would survive a logo swap.`;
+    ? `${leadClause}, and we could not find a detail only you could write: ${survivors} of ${n} sentences would survive a logo swap.`
+    : `We could not find a detail only you could write: ${survivors} of ${n} sentences would survive a logo swap.`;
 }

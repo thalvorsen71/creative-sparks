@@ -55,7 +55,7 @@ function emptyReport(text, opts) {
     promiseProof: { promises: 0, proofs: 0, orphans: [] },
     rivals: [],
     themes: [],
-    lead: { themeId: null, label: null, sentenceIndex: null, quote: null, confidence: 'none', corpusShare: null, examples: [] },
+    lead: { reason: 'no_promise', themeId: null, label: null, sentenceIndex: null, quote: null, confidence: 'none', corpusShare: null, examples: [] },
     promises: [],
     buriedLede: null,
     diagnosis: { title: 'The Blank Page', tagline: 'In an empty text box, no one can hear you scream.',

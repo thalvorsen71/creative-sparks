@@ -81,33 +81,33 @@ function require_mixed() {
 }
 
 // Live defects that would put something false on a projector. See REVIEW.md Sprint 2 MUST-FIX.
-describe('R11 sprint 2 projector bugs (it.fails until fixed)', () => {
-  it.fails('MF-S1: a building is not "a named program" and not the best detail', () => {
+describe('R11 sprint 2 projector bugs (fixed, flipped from it.fails)', () => {
+  it('FIXED MF-S1: a building is not "a named program" and not the best detail', () => {
     const r = A('Smith Hall, Jones Center and the Brown Quad are at the heart of campus. Our students thrive here.');
     expect(r.buriedLede).toBeNull();
   });
-  it.fails('MF-S1: a rec center behind a cliche is not the buried lede', () => {
+  it('FIXED MF-S1: a rec center behind a cliche is not the buried lede', () => {
     const r = A('Welcome home. Our vibrant community includes a Starbucks, a Chick-fil-A and the Student Recreation Center. You will find your place here.');
     expect(r.buriedLede).toBeNull();
   });
-  it.fails('MF-S2: a registration deadline is not "a requirement, something every student actually does" or proof', () => {
+  it('FIXED MF-S2: a registration deadline is not "a requirement, something every student actually does" or proof', () => {
     const r = A('Students must register for classes by August 1. We are a vibrant community.');
     expect(r.diagnosis.line).not.toMatch(/you opened with the proof/);
   });
-  it.fails('MF-S2: a bookstore sale is not a ritual, and the detail is not a dangling clause', () => {
+  it('FIXED MF-S2: a bookstore sale is not a ritual, and the detail is not a dangling clause', () => {
     const r = A('Every year since 1985, the bookstore has held a sale in May. We prepare you for the future.');
     expect(r.buriedLede?.detail).not.toBe('Every year since 1985');
   });
-  it.fails('MF-S3: a published no-tuition policy is not told it "says how nothing works"', () => {
+  it('FIXED MF-S3: a published no-tuition policy is not told it "says how nothing works"', () => {
     const r = A('If your family earns under $80,000 a year, you pay no tuition. That has been true since 2019, and 1,140 students used it this fall.');
     expect(r.diagnosis.line).not.toMatch(/none says how anything here actually works/);
   });
-  it.fails('MF-S3: a no-tuition policy that 1,140 students used has a buried lede (it scores 90 and the page says "Nothing only you could say")', () => {
+  it('FIXED MF-S3: a no-tuition policy that 1,140 students used has a buried lede (it scores 90 and the page says "Nothing only you could say")', () => {
     const r = A('If your family earns under $80,000 a year, you pay no tuition. That has been true since 2019, and 1,140 students used it this fall.');
     expect(r.score).toBeGreaterThanOrEqual(80);
     expect(r.buriedLede).not.toBeNull();
   });
-  it.fails('MF-S4: when the detector finds nothing, the line hedges instead of asserting there is nothing', () => {
+  it('FIXED MF-S4: when the detector finds nothing, the line hedges instead of asserting there is nothing', () => {
     const r = A('At Northfield, you will thrive. Nursing students start clinical rotations in their first semester instead of their third. Faculty grade every lab report within 48 hours. We are proud of our graduates.');
     expect(r.diagnosis.line).not.toMatch(/^There is no detail here only you could write/);
   });

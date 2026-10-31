@@ -2,8 +2,16 @@
 // The T0 lesson: a big number or a proper noun alone is NOT a distinctive detail. It has to say
 // how something here works, what every student does, where it happens, or what you did first.
 
-const ORG = 'Society|Club|Program|Programme|Institute|Center|Centre|Lab|Laboratory|Station|Project|Initiative|Fellowship|Scholars|Team|Band|Choir|Chorus|Orchestra|Ensemble|Press|Review|Journal|Farm|Garden|Museum|Library|Observatory|Seminar|Prize|Lecture|Series|Studio|Theater|Theatre|Clinic|Academy|Workshop|Expedition|Challenge|Cup|Bowl|Festival|Trail|Forest|Reserve|Preserve|Hall|House|Corps|League|Brigade|Squad|Collective|Cooperative|Co-op';
+// Things people do together: these are programs, whether or not anything else is said.
+const ORG = 'Society|Club|Program|Programme|Institute|Project|Initiative|Fellowship|Scholars|Team|Band|Choir|Chorus|Orchestra|Ensemble|Press|Review|Journal|Seminar|Prize|Lecture|Series|Clinic|Academy|Workshop|Expedition|Challenge|Cup|Bowl|Festival|Corps|League|Brigade|Squad|Collective|Cooperative|Co-op|Course|Curriculum|Fund|Guarantee|Promise|Pledge';
 const ORG_RE = new RegExp(`\\b(?:${ORG})s?\\b`);
+// Buildings and facilities. A name on a building is not a program. It counts as a place only
+// when the sentence says what happens there.
+const FACILITY_RE = /\b(?:Hall|House|Center|Centre|Library|Museum|Theater|Theatre|Studio|Quad|Union|Commons|Building|Complex|Arena|Stadium|Gym|Gymnasium|Pavilion|Plaza|Tower|Chapel|Court|Field|Lab|Laboratory|Station|Farm|Garden|Observatory|Forest|Reserve|Preserve|Trail)s?\b/;
+// "Something happens there": a person doing a thing, or a concrete operating verb.
+const ACTIVITY = /\b(?:students?|first-years?|freshm[ae]n|seniors?|juniors?|sophomores?|undergraduates?|majors|we|they|faculty|classes|crews?|teams?)\s+(?:[\w'\u2019-]+\s+){0,2}?(?:spend|spends|spent|live|lives|work|works|row|rows|study|studies|train|trains|build|builds|built|run|runs|ran|meet|meets|perform|performs|sail|sails|dig|digs|test|tests|track|tracks|tracked|grow|grows|cook|cooks|teach|teaches|take|takes|dive|dives|count|counts|survey|surveys|map|maps|fly|flies|launch|launches|restore|restores)\b|\b(?:tracked|surveyed|mapped|counted|restored|planted|launched|dug|sailed|rowed)\b|\bwith its own\b/i;
+// Amenities, retail and paperwork. Never a lede, never "a real mechanism".
+export const TRIVIA = /\b(?:register|registration|deadlines?|due by|forms?|fees?|parking|permits?|submit|FAFSA|deposit|transcripts?|immunizations?|ID cards?|bookstore|sales?|discounts?|coupons?|Starbucks|Chick-fil-A|Panera|Subway|Dunkin|food court|dining hall|caf[eé]s?|coffee|T-shirts?|merch|wi-?fi|vending|laundry|shuttle|vending)\b/i;
 const GEO_RE = /\b(?:Bay|River|Lake|Mountains?|Island|Street|Avenue|Coast|Gulf|Point|Valley|County|Harbor|Harbour|Sound|Canyon|Desert|Ocean|Sea|Creek|Falls|Peninsula|Prairie|Delta)\b/;
 
 // Nouns too generic to be a "first" or an "only".
@@ -17,19 +25,28 @@ const PATTERNS = [
   // requirement: what every student does
   { kind: 'requirement', w: 3, re: /\b(?:every|each|all)\s+(?:[\w'’-]+\s+){0,3}?(?:student|students|first-years?|freshm[ae]n|seniors?|juniors?|sophomores?|graduates?|majors?|undergraduates?)\s+(?:must\s+|is required to\s+|are required to\s+)?(?:reads?|takes?|completes?|writes?|spends?|lives?|defends?|presents?|studies|study|rows?|builds?|publishes?|performs?|works?|serves?|signs?|learns?|travels?|designs?|runs?|teaches?)\b/i },
   { kind: 'requirement', w: 2.75, re: /\b(?:ends|begins|starts|culminates|opens|closes) with (?:a|an|the|one)\b/i },
-  { kind: 'requirement', w: 2.5, re: /\b(?:is required|are required|must|(?:is|are) not allowed to|may not|cannot graduate without|graduation requires)\b/i, needsDetail: true },
+  // "must" alone is a rule, not a lede ("must register by August 1"). Weight below the lede threshold.
+  { kind: 'requirement', w: 1.5, re: /\b(?:is required|are required|must|(?:is|are) not allowed to|may not|cannot graduate without|graduation requires)\b/i, needsDetail: true },
   // structure: how learning is organized
   { kind: 'structure', w: 3, re: /\bno (?:majors|lectures|grades|letter grades|exams|tests|departments|textbooks|tenure|required courses)\b/i },
   { kind: 'structure', w: 3, re: /\b(?:classes (?:are|have|average|cap at|top out at) \d+|\d+ students (?:around|per|in each|at)|one (?:course|class) at a time|block plan)\b/i },
   { kind: 'structure', w: 2.5, re: /\b(?:oral exams?|senior thesis|thesis|capstone|tutorials?|great books|co-?op (?:rotation|semester|program)|residential college|cohorts? of \d+)\b/i },
+  { kind: 'structure', w: 2.75, re: /\b(?:clinical rotations?|(?:in|during) their first (?:semester|year|week|month)|instead of (?:in )?their (?:second|third|fourth|senior|junior)|within \d+ (?:hours|days)|on day one)\b/i },
+  // policy: published terms anyone can check
+  { kind: 'policy', w: 3, re: /\b(?:pay(?:s)? no tuition|tuition-free|free tuition|no-loan|meets? (?:full|100 percent of|100% of) (?:demonstrated )?need|we cover (?:full )?tuition|guarantee(?:s|d)? (?:admission|a spot|housing|an internship|aid))\b/i },
   // ritual: something that happens on a schedule, with a start date
   { kind: 'ritual', w: 2.75, re: /\b(?:every (?:week|year|night|morning|spring|fall|semester|monday|tuesday|wednesday|thursday|friday|saturday|sunday)|each (?:week|year|spring|fall))\b[^.!?]{0,60}\bsince \d{4}\b|\bsince \d{4}\b[^.!?]{0,60}\bevery (?:week|year|night)\b|\bhas run every\b/i },
   // mechanism: a concrete thing that actually happens
-  { kind: 'mechanism', w: 2.5, re: /\b(?:tracked|tracks|built|builds|launched|operates|hosts|rows|rowed|milks?|digs?|dug|restores?|restored|plants?|planted|surveys?|surveyed|mapped|counted|counts|published|designed|sails?|sailed|brews?|tests?|tested|ran|runs)\b/i, needsDetail: true },
+  { kind: 'mechanism', w: 2.5, re: /\b(?:tracked|tracks|built|builds|launched|operates|hosts|rows|rowed|milks?|digs?|dug|restores?|restored|plants?|planted|surveys?|surveyed|mapped|counted|counts|published|designed|sails?|sailed|brews?|tests?|tested|ran|runs|grades?|graded|returns?)\b/i, needsDetail: true },
 ];
 
 // "the only collegiate falconry team", "the first public university to ...": a first, if the noun is real.
 const FIRST_RE = /\b(?:the|our|its|their|america's|the nation's|the country's|the world's|the state's)\s+(only|first|oldest|largest|last|sole)\s+((?:[\w'’-]+\s*){1,5})/gi;
+
+function wholeSentence(text) {
+  const ws = text.trim().replace(/[.!?]+$/, '').split(/\s+/);
+  return ws.length > 16 ? `${ws.slice(0, 16).join(' ')}...` : ws.join(' ');
+}
 
 function clauseAround(text, start, end) {
   const seps = /[,;:()]|\s[–—]\s/g;
@@ -42,6 +59,8 @@ function clauseAround(text, start, end) {
   }
   let clause = text.slice(a, b).trim().replace(/[.!?]+$/, '');
   const ws = clause.split(/\s+/);
+  // A clause under five words is a fragment ("Every year since 1985"). Use the sentence.
+  if (ws.length < 5) return wholeSentence(text);
   if (ws.length > 16) clause = `${ws.slice(0, 16).join(' ')}...`;
   return clause;
 }
@@ -74,13 +93,17 @@ export function findDetails(text, spec = { tokens: [], weight: 0, strong: 0, con
   const t = String(text || '');
   const out = [];
   const hasDetail = spec.weight >= 0.5 || spec.concrete > 0;
+  // Coffee, parking and paperwork: real, checkable, and not why anyone enrolls.
+  if (TRIVIA.test(t)) return [];
+  const active = ACTIVITY.test(t);
 
   for (const tok of spec.tokens || []) {
     if (!/\p{Lu}/u.test(tok)) continue;
     const at = t.indexOf(tok);
     const withThe = at >= 4 && /the $/i.test(t.slice(at - 4, at)) ? `the ${tok}` : tok;
     if (ORG_RE.test(tok)) out.push({ kind: 'named program', w: 3, start: Math.max(0, at), detail: withThe });
-    else if (GEO_RE.test(tok)) out.push({ kind: 'place', w: 2, start: Math.max(0, at), detail: withThe });
+    else if (FACILITY_RE.test(tok)) { if (active) out.push({ kind: 'place', w: 3, start: Math.max(0, at), detail: withThe }); }
+    else if (GEO_RE.test(tok)) { if (active) out.push({ kind: 'place', w: 2, start: Math.max(0, at), detail: withThe }); }
   }
   for (const p of PATTERNS) {
     if (p.needsDetail && !hasDetail) continue;
@@ -105,6 +128,7 @@ export const KIND_PHRASE = {
   structure: 'a structure: it says how learning works here',
   ritual: 'a ritual with a start date',
   mechanism: 'a thing that actually happens, with a who and a what',
-  place: 'a real place you could find on a map',
+  place: 'a real place, and the sentence says what happens there',
+  policy: 'a published policy, with terms anyone can check',
   first: 'a first, which a rival would have to disprove',
 };

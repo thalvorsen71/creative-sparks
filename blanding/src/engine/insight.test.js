@@ -57,7 +57,7 @@ describe('Amendment 2 shape', () => {
     expect(r.themes).toEqual([]);
     expect(r.promises).toEqual([]);
     expect(r.buriedLede).toBeNull();
-    expect(r.lead).toEqual({ themeId: null, label: null, sentenceIndex: null, quote: null, confidence: 'none', corpusShare: null, examples: [] });
+    expect(r.lead).toEqual({ reason: 'no_promise', themeId: null, label: null, sentenceIndex: null, quote: null, confidence: 'none', corpusShare: null, examples: [] });
     expect(r.diagnosis.line).toBe('Paste some copy. We will wait.');
   });
   it('is deterministic', () => {
@@ -237,5 +237,54 @@ describe('typography', () => {
     }
     expect(strings.some((s) => /[“”]/.test(s))).toBe(true);
     for (const s of strings) expect(s, s).not.toMatch(STRAIGHT_QUOTE);
+  });
+});
+
+describe('R11 sprint 2 fixes: modest right beats confident wrong', () => {
+  const N = { schoolName: 'Northfield University' };
+  it('buildings are never crowned; a facility counts only when something happens there', () => {
+    expect(analyze('Visit the Johnson Center, the Miller Library and Smith Hall. We are glad you came.', N).buriedLede).toBeNull();
+    const p = run('PROGRAM').buriedLede;
+    expect(p.detail).toBe('the Pelican Point Field Station');
+    expect(p.kind).toBe('place');
+    expect(analyze('Students spend every Friday restoring trails in the Kessler Forest Preserve. Come visit.').buriedLede.kind).toBe('place');
+  });
+  it('trivia, retail and paperwork are never a lede or a mechanism', () => {
+    for (const t of ['Students must register for classes by August 1.', 'Every year since 1985, the bookstore has held a sale in May.',
+      'Parking permits are due by September 3.', 'Our vibrant community includes a Starbucks and 3 food trucks.']) {
+      const r = analyze(`${t} We are glad you are here.`);
+      expect(r.buriedLede, t).toBeNull();
+      expect(r.promises.every((x) => x.proofKind !== 'operating_mechanism'), t).toBe(true);
+    }
+  });
+  it('a lede detail is never a fragment under five words', () => {
+    const r = analyze('Every year since 1985, the crew has rowed the Kessler River at dawn. We prepare you for the future.');
+    if (r.buriedLede) expect(r.buriedLede.detail.split(/\s+/).length).toBeGreaterThanOrEqual(5);
+  });
+  it('mechanisms without proper nouns are found (nursing)', () => {
+    const r = analyze('At Northfield, you will thrive. Nursing students start clinical rotations in their first semester instead of their third. Faculty grade every lab report within 48 hours.', N);
+    expect([1, 2]).toContain(r.buriedLede.sentenceIndex);
+    expect(r.diagnosis.line).not.toMatch(/could not find/);
+  });
+  it('no lede: the line hedges, it never asserts absence', () => {
+    for (const k of ['GENERIC', 'AVERAGE']) {
+      expect(run(k).diagnosis.line).toMatch(/we could not find/i);
+      expect(run(k).diagnosis.line).not.toMatch(/there is no|nothing here is|none says/i);
+    }
+  });
+  it('lead.reason explains a missing lead promise', () => {
+    expect(run('SPECIFIC').lead.reason).toBe('proof_first');
+    expect(run('STATS').lead.reason).toBe('proof_first');
+    expect(analyze('If your family earns under $80,000 a year, you pay no tuition. That has been true since 2019, and 1,140 students used it this fall.').lead.reason).toBe('proof_first');
+    expect(analyze('Come and see us. It is a nice day.').lead.reason).toBe('no_promise');
+    expect(run('GENERIC').lead.reason).toBeNull();
+  });
+  it('the no-tuition policy is the lede, a published policy', () => {
+    const r = analyze('If your family earns under $80,000 a year, you pay no tuition. That has been true since 2019, and 1,140 students used it this fall.');
+    expect(r.buriedLede).toMatchObject({ sentenceIndex: 0, kind: 'policy', position: 'lead' });
+    expect(r.diagnosis.line).toMatch(/^You open with/);
+  });
+  it('STATS still gets "All receipts", hedged', () => {
+    expect(run('STATS').diagnosis.line).toMatch(/^All receipts, no story: .*we could not find one that says how anything here works\.$/);
   });
 });
