@@ -339,3 +339,23 @@ describe('the line agrees with the score', () => {
     expect(analyze(ADV[2]).buriedLede).not.toBeNull();
   });
 });
+
+describe('praise matches the band', () => {
+  it('"you opened with the proof" never appears at haunted or below', () => {
+    const texts = [...Object.values(F),
+      'We pledge to help every student succeed. You will find your place here.',
+      'We have transfer agreements with many schools. Our vibrant community welcomes you.',
+      'Every first-year spends a week at the Kessler Farm. We prepare you for the future. Our vibrant community is world-class. You will thrive.',
+      'Students must register for classes by August 1. We are a vibrant community.',
+      'Credits transfer to all 14 state universities through our guaranteed transfer agreement. Come visit.',
+      'The only college where every student rows.'];
+    for (const t of texts) {
+      const r = analyze(t, { schoolName: 'Northfield University' });
+      if (['embalmed', 'haunted'].includes(r.band.id)) expect(r.diagnosis.line, t).not.toMatch(/you opened with the proof/);
+    }
+  });
+  it('soft policy words need a concrete term', () => {
+    expect(analyze('We pledge to help every student succeed. Come visit.').buriedLede).toBeNull();
+    expect(analyze('Come visit. Credits transfer to all 14 state universities through our guaranteed transfer agreement.').buriedLede).toMatchObject({ kind: 'policy' });
+  });
+});

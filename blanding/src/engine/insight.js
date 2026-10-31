@@ -272,6 +272,9 @@ export function diagnosisLine({ sentences, lead, buriedLede, bandId = null }) {
     const d = named ? buriedLede.detail : `“${buriedLede.detail}”`;
     const s = sentences[buriedLede.sentenceIndex];
     const wrap = s.cliches[0] ? s.cliches[0].match : null;
+    if (buriedLede.position === 'lead' && (bandId === 'embalmed' || bandId === 'haunted')) {
+      return `You open with ${d}, and then the page buries it under copy any school could sign.`;
+    }
     if (buriedLede.position === 'lead') {
       return `You open with ${d}, which is the move: most schools open with a promise, you opened with the proof.`;
     }
