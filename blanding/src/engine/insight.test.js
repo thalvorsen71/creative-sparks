@@ -165,18 +165,18 @@ describe('diagnosis.line', () => {
       const r = run(k);
       const line = r.diagnosis.line;
       expect(line).not.toMatch(DASH);
-      expect(line.replace(/'[^']*'/g, '')).not.toMatch(/[.!?]\s+\p{Lu}/u); // one sentence
-      for (const m of line.replace(/'[^']*'/g, '').matchAll(/(\d+)%/g)) {
+      expect(line.replace(/“[^”]*”/g, '')).not.toMatch(/[.!?]\s+\p{Lu}/u); // one sentence
+      for (const m of line.replace(/“[^”]*”/g, '').matchAll(/(\d+)%/g)) {
         expect(Number(m[1])).toBe(Math.round(r.lead.corpusShare * 100));
       }
-      for (const m of line.replace(/'[^']*'/g, '').replace(/\d+%/g, '').matchAll(/\d+/g)) {
+      for (const m of line.replace(/“[^”]*”/g, '').replace(/\d+%/g, '').matchAll(/\d+/g)) {
         expect(Number(m[0])).toBeLessThanOrEqual(r.stats.sentences);
       }
     });
   }
   it('picks the template from the findings', () => {
     expect(run('GENERIC').diagnosis.line).toMatch(/^You lead with .*every sentence would survive a logo swap\.$/);
-    expect(run('MIXED').diagnosis.line).toMatch(/Competitive Pierogi Society, is stuck in sentence 2 behind 'vibrant community'/);
+    expect(run('MIXED').diagnosis.line).toMatch(/Competitive Pierogi Society, is stuck in sentence 2 behind “vibrant community”/);
     expect(run('SPECIFIC').diagnosis.line).toMatch(/^You open with /);
     expect(run('STATS').diagnosis.line).toMatch(/^All receipts, no story/);
     expect(run('TAGLINE').diagnosis.line).toMatch(/^One line/);
@@ -205,5 +205,37 @@ describe('sprint 1 leftovers', () => {
   it('day names are not "something real"', () => {
     const r = checkDistinction('Classes meet on Monday.');
     expect(r.reasons.join(' ')).not.toMatch(/Names something real: Monday/);
+  });
+});
+
+describe('typography', () => {
+  // A straight ' at a word edge is a quotation mark. Apostrophes (else's) sit inside words and are fine.
+  const STRAIGHT_QUOTE = /(?:^|[\s(:,“])'|'(?=[\s.,;:!?)]|$)/;
+  it('user-facing engine strings use curly quotes, never straight ones', async () => {
+    const { LEXICON, bandFor } = await import('./index.js');
+    const { ALL_DIAGNOSES } = await import('./titles.js');
+    const texts = [
+      ...Object.values(F),
+      'We prepare you for the future. Our vibrant community includes the Competitive Pierogi Society.',
+      'Our campus is lovely. We care. You will thrive. Join us. Senior year ends with a 90-minute oral exam.',
+      'There are no majors and no lectures. We are the only collegiate falconry team.',
+    ];
+    const strings = [
+      ...LEXICON.flatMap((l) => [l.phrase, l.translation, l.fix]),
+      ...ALL_DIAGNOSES.flatMap((d) => [d.title, d.tagline]),
+      ...[0, 30, 50, 65, 80].map((s) => bandFor(s).verdict),
+      analyze('').diagnosis.line,
+    ];
+    for (const t of texts) {
+      const r = analyze(t);
+      strings.push(r.diagnosis.title, r.diagnosis.tagline, r.diagnosis.line);
+      if (r.buriedLede) strings.push(r.buriedLede.why);
+    }
+    for (const c of ['We have a vibrant community.', 'the only collegiate falconry team', 'There are no majors and no lectures.',
+      'Every first-year rows on the Kessler River.', 'We are the only school that cares.', 'Our lab tracked 300 crabs.', '', 'x']) {
+      strings.push(...checkDistinction(c).reasons);
+    }
+    expect(strings.some((s) => /[“”]/.test(s))).toBe(true);
+    for (const s of strings) expect(s, s).not.toMatch(STRAIGHT_QUOTE);
   });
 });

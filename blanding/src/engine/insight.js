@@ -221,7 +221,7 @@ export function buildInsight(sentences) {
       : position === 'early'
         ? `It shows up in sentence ${ledeIdx + 1}. Move it to sentence 1.`
         : `It waits until sentence ${ledeIdx + 1} of ${n}${before ? `, behind ${before} ${before === 1 ? 'sentence' : 'sentences'} any school could sign` : ''}.`;
-    const what = `It is ${KIND_PHRASE[best.kind]}${wrap ? `, wrapped in '${wrap}'` : ''}.`;
+    const what = `It is ${KIND_PHRASE[best.kind]}${wrap ? `, wrapped in “${wrap}”` : ''}.`;
     buriedLede = { sentenceIndex: ledeIdx, text: s.text, detail: best.detail, kind: best.kind, position, why: `${what} ${where}` };
   }
 
@@ -251,7 +251,7 @@ export function diagnosisLine({ sentences, lead, buriedLede }) {
     const k = buriedLede.sentenceIndex + 1;
     // Names read inline ("the Competitive Pierogi Society"); clauses get quoted.
     const named = ['named program', 'place', 'first'].includes(buriedLede.kind);
-    const d = named ? buriedLede.detail : `'${buriedLede.detail}'`;
+    const d = named ? buriedLede.detail : `“${buriedLede.detail}”`;
     const s = sentences[buriedLede.sentenceIndex];
     const wrap = s.cliches[0] ? s.cliches[0].match : null;
     if (buriedLede.position === 'lead') {
@@ -259,10 +259,10 @@ export function diagnosisLine({ sentences, lead, buriedLede }) {
     }
     if (!leadClause) {
       return wrap
-        ? `No slogan to speak of, and your best detail, ${d}, is stuck in sentence ${k} behind '${wrap}'.`
+        ? `No slogan to speak of, and your best detail, ${d}, is stuck in sentence ${k} behind “${wrap}”.`
         : `No slogan and no lead promise, and your best detail, ${d}, is sitting in sentence ${k} waiting to be promoted.`;
     }
-    if (wrap) return `${leadClause}, and your best detail, ${d}, is stuck in sentence ${k} behind '${wrap}'.`;
+    if (wrap) return `${leadClause}, and your best detail, ${d}, is stuck in sentence ${k} behind “${wrap}”.`;
     return buriedLede.position === 'buried'
       ? `${leadClause}, and your best detail, ${d}, waits until sentence ${k} of ${n}.`
       : `${leadClause}, and your best detail, ${d}, shows up one sentence too late.`;

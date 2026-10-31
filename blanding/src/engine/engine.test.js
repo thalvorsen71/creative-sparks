@@ -363,7 +363,7 @@ describe('checkDistinction', () => {
     expect(r.reasons.join(' ')).toMatch(/only name in it is yours/);
   });
   it('names the cliche it found', () => {
-    expect(checkDistinction('We have a vibrant community.').reasons[0]).toBe("Contains 'vibrant community'. Bad.");
+    expect(checkDistinction('We have a vibrant community.').reasons[0]).toBe('Contains “vibrant community”. Bad.');
   });
 });
 

@@ -6,11 +6,11 @@ import { findDetails } from './details.js';
 
 const CALENDAR = /^(?:January|February|March|April|May|June|July|August|September|October|November|December|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)s?$/;
 const DETAIL_REASON = {
-  first: (d) => `Claims '${d.phrase}'. A first or an only: a rival would have to disprove it.`,
-  structure: (d) => `Describes how learning works: '${d.detail}'. That is distinction.`,
-  requirement: (d) => `Names something every student does: '${d.detail}'. Good.`,
+  first: (d) => `Claims “${d.phrase}”. A first or an only: a rival would have to disprove it.`,
+  structure: (d) => `Describes how learning works: “${d.detail}”. That is distinction.`,
+  requirement: (d) => `Names something every student does: “${d.detail}”. Good.`,
   ritual: () => 'A ritual with a start date. Nobody can borrow that.',
-  mechanism: (d) => `Describes something that actually happens: '${d.detail}'. Good.`,
+  mechanism: (d) => `Describes something that actually happens: “${d.detail}”. Good.`,
   'named program': (d) => `Names a program: ${d.detail}. A program is proof the promise has a mechanism.`,
 };
 
@@ -56,7 +56,7 @@ export function checkDistinction(claim = '', opts = {}) {
   for (const c of cliches.slice(0, 2)) {
     const sev = LEXICON[LEXICON_INDEX[c.id]].severity;
     score -= 8 + sev * 5;
-    bad.push([3 + sev, `Contains '${c.match}'. Bad.`]);
+    bad.push([3 + sev, `Contains “${c.match}”. Bad.`]);
   }
   if (!hasNumber && !names.length && !detail) {
     score -= 10;
@@ -68,7 +68,7 @@ export function checkDistinction(claim = '', opts = {}) {
     score -= 8; bad.push([3, 'A superlative with nobody backing it up.']);
   }
   if (EXCLUSIVE.test(text) && !hasNumber && !names.length && !detail) {
-    bad.push([2, "Says 'only' or 'first' but gives nothing to check."]);
+    bad.push([2, 'Says “only” or “first” but gives nothing to check.']);
   }
   if (wc < 4) { score -= 10; bad.push([2, 'Too short to prove anything.']); }
   if (wc > 50) { score -= 5; bad.push([1, 'Long. A claim should fit on a sticky note.']); }
