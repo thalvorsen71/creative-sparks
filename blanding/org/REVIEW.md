@@ -2,6 +2,29 @@
 
 Reviewer: R11 (Staff). Date: 2026-10-31. Everything below was run, not read, unless it is listed under "Not verified".
 
+# Sprint 2 engine-only confirm (HEAD 3aef714)
+
+**ENGINE: NOT YET** (one rule). The MF-F1 fix is correct and verified: "We pledge to help every student succeed" and "transfer agreements with many schools" no longer get a lede, and haunted/embalmed copy never hears "you opened with the proof". Suite 186/186. My file diff shows only the two MF-F1 flips. Mutants on the changed lines: **5/5 caught**:
+- F01: needsStrong ignored
+- F02: `strong >= 0`
+- F03: haunted guard removed
+- F04: guard covers embalmed only
+- F05: soft policy terms dropped
+
+Fresh policy-style inputs:
+
+| Input | Score | Result | Verdict |
+|-------|-------|--------|---------|
+| `Our tuition pledge: if your family earns under $75,000, you pay nothing. 640 students used it in 2025.` | 87 | policy lede, "which is the move" | Correct |
+| `We have transfer agreements with Ohio State and Miami University.` | 61 | policy lede | Defensible (named partners) |
+| `We pledge to help 10,000 students succeed. ...` | 47 | policy lede; line "then the page buries it under copy any school could sign" | Hedged by the new guard, but the panel still says "a published policy, with terms anyone can check". Weak |
+| **`Our pledge to you: 100% commitment, every single day.`** | **85** | **Unmistakable, policy lede, "which is the move: ... you opened with the proof"** | **MF-F2, MUST-FIX** |
+| `Our commitment to you is 100% real.` | **85** | Unmistakable, "One line, and it is actually yours." | MF-F2 |
+
+**MF-F2:** `numberWeight` (detect.js) gives any `%` full proof weight (`/^\$|%|percent/` returns 1). So "100%" in a slogan is strong proof, satisfies `needsStrong`, and scores 85. This predates sprint 2, but "100% committed" is common higher-ed copy and now also crowns a policy. Fix: count `100%`/`110%` only when followed by "of" + a noun ("100% of graduates"); otherwise weight 0.2. Pinned by 2 `it.fails`. Re-gate scope: those two tests.
+
+---
+
 # Sprint 2 final gate (HEAD 876ebc0)
 
 ## Final verdicts

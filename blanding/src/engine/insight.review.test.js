@@ -163,3 +163,16 @@ describe('R11 sprint 2 final gate projector bugs (it.fails until fixed)', () => 
     expect(A('We have transfer agreements with many schools. You will thrive here.').buriedLede).toBeNull();
   });
 });
+
+// Engine-only confirm after 3aef714: MF-F1 fixed. Residual: "100%" is always strong proof (numberWeight: % => 1),
+// so it satisfies needsStrong and scores slogans Unmistakable.
+describe('R11 sprint 2 engine confirm (it.fails until fixed)', () => {
+  it.fails('MF-F2: "100% commitment" is not a published policy or proof', () => {
+    const r = A('Our pledge to you: 100% commitment, every single day.');
+    expect(r.buriedLede).toBeNull();
+    expect(r.score).toBeLessThan(65);
+  });
+  it.fails('MF-F2: "100% real" is not Unmistakable', () => {
+    expect(A('Our commitment to you is 100% real.').score).toBeLessThan(65);
+  });
+});
