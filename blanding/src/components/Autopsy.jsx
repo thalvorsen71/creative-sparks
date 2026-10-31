@@ -14,6 +14,8 @@ export default function Autopsy({ report }) {
   const [open, setOpen] = useState(null);
   const byId = Object.fromEntries(report.cliches.map((c) => [c.id, c]));
   const kinds = Object.fromEntries((report.promises || []).map((p) => [p.sentenceIndex, p.proofKind]));
+  const evidenceFor = {};
+  (report.promises || []).forEach((p) => { if (p.evidenceIndex != null && p.evidenceIndex !== p.sentenceIndex && evidenceFor[p.evidenceIndex] == null) evidenceFor[p.evidenceIndex] = p.sentenceIndex; });
   const KIND = { restated_claim: 'Restates the claim', operating_mechanism: 'A real mechanism', reported_outcome: 'An outcome',
     published_policy: 'A published policy', example_or_story: 'An example', third_party_recognition: 'Third-party recognition', none: 'None' };
   const restated = (corpus?.proofKinds || []).find((k) => k.kind === 'restated_claim');
@@ -50,7 +52,7 @@ export default function Autopsy({ report }) {
               <div className="min-w-0">
                 <p className="text-lg leading-relaxed">
                   {orphan ? <Tag blood>Orphaned promise</Tag> : s.isPromise && <Tag>Promise</Tag>}
-                  {s.isProof && <Tag>Proof</Tag>}
+                  {evidenceFor[s.i] != null && !kinds[s.i] && <Tag>Evidence for {String(evidenceFor[s.i] + 1).padStart(2, '0')}</Tag>}
                   {kinds[s.i] && <Tag>Proof: {KIND[kinds[s.i]] || kinds[s.i]}</Tag>}
                   {parts.map((p, k) =>
                     p.c ? (
