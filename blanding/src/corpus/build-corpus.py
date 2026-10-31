@@ -83,7 +83,15 @@ def name_tokens(domain, titles):
     return {t for t in toks if t not in generic}
 
 
+# Quotes that identify a school by context even with its name removed. Tracey-reviewed cuts.
+EXCLUDE = {
+    "We produce innovators and leaders who are men of distinction.",  # points to an all-male college
+}
+
+
 def clean_candidate(s, ntoks):
+    if s in EXCLUDE:
+        return False
     n = len(s.split())
     if n < 6 or n > 30:
         return False

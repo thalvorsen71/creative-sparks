@@ -24,3 +24,4 @@ Up to 5 per theme from agreed promises with `readers == 2`. Quotes are split int
 - Quotes keep the site's own typography (curly apostrophes etc.).
 - Proof kinds were labelled by Haiku, post hoc; the 2-reader agreement applies to themes and support, not to kinds.
 - Reader audit stats: misquotes 11/1624 (Sonnet), 5/1577 (Opus) per the T0 agreement meta.
+- 2026-10-31: cut 'men of distinction' example (identifies an all-male college). Tracey's call. EXCLUDE list in build-corpus.py.
