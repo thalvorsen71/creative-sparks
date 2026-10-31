@@ -2,6 +2,41 @@
 
 Reviewer: R11 (Staff). Date: 2026-10-31. Everything below was run, not read, unless it is listed under "Not verified".
 
+# Sprint 2 final gate (HEAD 876ebc0)
+
+## Final verdicts
+
+| Lane | Verdict | Why |
+|------|---------|-----|
+| ENGINE | **NOT YET** (one regex) | MF-R1 and SF-R2 are fixed and verified. The transfer-policy should-fix introduced a new false crown: MF-F1. |
+| EXPERIENCE | **SHIP** | MF-R2 is fixed. Autopsy tags now come only from proofKind: no "PROOF + PROOF: NONE" anywhere, and "EVIDENCE FOR 03" is correct on the mixed sample. |
+| DATA | **SHIP** | Unchanged. |
+| POSTER | **SHIP** | Unchanged. |
+
+Suite: 182/182 (including my 2 new `it.fails`). Build clean. I diffed my test files: since my last gate the lanes changed only the two `it.fails` to `it()`. No console errors and no overflow at 1280 or 375 across 7 inputs x 2 widths.
+
+## Verified in the real app (screenshots `r11s2c-{1280,375}-{promise,halls,starbucks,mixed,good,pledge,zorblax}-{insight,autopsy}.png`)
+
+| Input | Score | Diagnosis | Mirror / Buried Lede / Autopsy | Verdict |
+|-------|-------|-----------|--------------------------------|---------|
+| Northfield Promise paragraph | 93 | "You open with 'Northfield Promise covers tuition for 1,200 Ohio families', which is the move..." | Proof-first / policy lede / no tags | **MF-R1 fixed** |
+| Smith Hall | 61 | hedged | Place 6% / no lede / "ORPHANED PROMISE + PROOF: NONE" only | **MF-R2 fixed** |
+| Starbucks | 49 | hedged | no lede / "ORPHANED + PROOF: RESTATES THE CLAIM" | fixed |
+| Mixed sample | 62 | Pierogi Society line | career 39% / Pierogi / "EVIDENCE FOR 03" on the Ruiz sentence | correct |
+| Good sample | 89 | "which is the move" | "You did not lead with a promise. You led with proof." / requirement lede | correct, consistent |
+
+## Fresh adversarial inputs
+
+1. **`We pledge to help every student succeed. Our vibrant community welcomes you.` scores 34, Haunted.** Diagnosis: "You open with 'We pledge to help every student succeed', which is the move: most schools open with a promise, you opened with the proof." Buried Lede: "a published policy, with terms anyone can check." **The Mirror on the same page says "You lead with belonging and community."** `r11s2c-375-pledge-insight.png`. Also `We have transfer agreements with many schools.` is crowned as a policy (39). **MF-F1, MUST-FIX.** Cause: 876ebc0 added bare `pledge` and `transfer agreements?` to the w3 `policy` pattern in `details.js` with no detail requirement. Fix: set `needsDetail: true` on those alternatives, or require a number or a named partner. I checked that the pledge sentence has spec weight 0, so `needsDetail` alone clears it. Pinned by 2 `it.fails`.
+2. `Zorblax Quinterfield met Plimbo Varnashire at Grelk Hall...` scores 66, Breathing: "1 of 2 sentences are yours and the detail is spread thin, so pick the best one and put it first." Mirror: no lead promise. Consistent and hedged. Fake names remain the known limit (sprint 1, call 2).
+3. Junk (`123 456 789` = 0, phone junk = 23) gets "One line, and any school could sign it." / "We could not find anything here that is only yours". The new survivors=0 template does not fire on junk. Fine.
+
+## MUST-FIX
+
+1. **MF-F1:** the `pledge` / `transfer agreements` policy lede (above). One regex. With it fixed, ENGINE is SHIP. Re-gate scope is the two MF-F1 tests and one pledge run in the app.
+
+---
+
 # Sprint 2 re-gate (HEAD fa5b540)
 
 ## Final verdicts

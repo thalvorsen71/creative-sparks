@@ -151,3 +151,15 @@ describe('R11 sprint 2 re-gate projector bugs (it.fails until fixed)', () => {
     expect(r.buriedLede).not.toBeNull();
   });
 });
+
+// Final sprint 2 gate: regression from 876ebc0 (bare "pledge" / "transfer agreements" added to the policy pattern, w3, no detail needed).
+describe('R11 sprint 2 final gate projector bugs (it.fails until fixed)', () => {
+  it.fails('MF-F1: "We pledge to help every student succeed" is a promise, not "a published policy" or "the proof"', () => {
+    const r = A('We pledge to help every student succeed. Our vibrant community welcomes you.');
+    expect(r.buriedLede).toBeNull();
+    expect(r.diagnosis.line).not.toMatch(/you opened with the proof/);
+  });
+  it.fails('MF-F1: "transfer agreements with many schools" is not a policy lede', () => {
+    expect(A('We have transfer agreements with many schools. You will thrive here.').buriedLede).toBeNull();
+  });
+});
