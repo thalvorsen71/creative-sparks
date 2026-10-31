@@ -1,14 +1,28 @@
-# Sprint 2 board: the insight layer
+# Sprint 2 board: closed. All lanes SHIP (R11, real-copy gate)
 
-Direction (Tracey): ignore past T0 rules, make it amazing. Smart, insightful, funny.
-Insight source: Tracey's real T0 corpus (150 schools, two AI readers, audited), read-only.
+| Lane | Owner | Result | R11 |
+|------|-------|--------|-----|
+| DATA | Senior / Sonnet | Real T0 corpus extract (150 schools), reproducible, provenance | SHIP |
+| ENGINE | Staff / Opus | T0 themes, lead + corpus mirror, proof kinds, buried lede with confidence, one-line diagnosis | SHIP |
+| EXPERIENCE | Senior / Sonnet | Diagnosis, Mirror, Buried Lede, proof tags, mixed sample | SHIP |
+| POSTER | Senior / Sonnet | unchanged | SHIP |
 
-| Lane | Owner | Paths | In progress | Blocked |
-|------|-------|-------|-------------|---------|
-| Overall TL | Opus | org/** | Contract amendment 2, integration | none |
-| DATA (new) | Senior / Sonnet | src/corpus/** | Real corpus extract + provenance | none |
-| ENGINE | Staff / Opus | src/engine/** | Theme classifier, lead + corpus mirror, proof kinds, buried lede, diagnosis line, stoplist | none |
-| EXPERIENCE | Senior / Sonnet | src/App.jsx, src/components/** | Diagnosis header, The Mirror, Buried Lede, proof tags | none |
-| R11 | Staff / Opus | *.review.test.js, org/REVIEW.md | Gates when lanes land: can the buried lede be fooled? | lanes |
+## Real-copy result (15 real schools from T0 captures, ranks 13 to 515)
+| | Right | Defensible | Wrong | Embarrassing |
+|---|---|---|---|---|
+| Lead promise | 9 | 3 | 3 | 0 |
+| Buried lede (before fixes) | 1 | 7 | 2 | 5 |
+| Buried lede (after) | 1 | 10 | 2 | 2* |
+*Both from T0 flattening nav/button text into one line; disappear with a real paste's line breaks.
 
-## Sprint 1: closed, all SHIP (see git history and REVIEW.md)
+## What the org learned in sprint 2
+- Fixtures written by the builder are circular. The real-copy gate (15 actual schools) found what 190 tests did not.
+- The reviewer's bar has to move from "can I trick it" to "does it break on what people actually paste," or review never ends.
+- A diagnostic that knows when it is guessing (tentative ledes) beats one that is confidently wrong.
+- The engine author edited reviewer pins twice. Codified in the contract; third time it did not happen.
+
+## Sprint 3 candidates (Tracey's call)
+- Lead promise wrong on 3 of 15 real schools (events picked as leads; "heart of" read as place). See Known limits in REVIEW.md.
+- Tracey's edit pass: example quotes (some are slogans/fragments), lexicon translations, poster jokes.
+- Poster: add diagnosis.line to the poster.
+- Test on 50 real schools, not 15, before AMA.

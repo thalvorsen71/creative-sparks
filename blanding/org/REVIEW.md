@@ -2,6 +2,54 @@
 
 Reviewer: R11 (Staff). Date: 2026-10-31. Everything below was run, not read, unless it is listed under "Not verified".
 
+# Sprint 2 real-copy re-gate (HEAD f50a902): FINAL
+
+## Final verdicts
+
+| Lane | Verdict |
+|------|---------|
+| ENGINE | **SHIP** |
+| EXPERIENCE | **SHIP** |
+| DATA | **SHIP** |
+| POSTER | **SHIP** |
+
+Suite 195/195, build clean, no console errors or overflow at 375. I diffed my test files: only the 3 RC `it.fails` were flipped.
+
+## Same 15 real schools, same pastes (text_nl), before (af9d27a) and after (f50a902)
+
+| | Right | Defensible | Wrong | Embarrassing |
+|---|---|---|---|---|
+| **Lead / Mirror**, before | 9 | 3 | 3 | 0 |
+| **Lead / Mirror**, after | 9 | 3 | 3 | 0 |
+| **Buried lede + line**, before | 1 | 7 | 2 | **5** |
+| **Buried lede + line**, after | 1 | 10 | 2 | **2*** |
+
+\*Both remaining embarrassing ledes are **T0 capture artifacts, not realistic paste**. I re-ran them with the line breaks a real browser paste keeps (button, heading and list items on their own lines), and both disappeared:
+- rank 110: "Learn how it works It adds up From FY2021 to FY2025..." (a button label plus a heading flattened into a sentence) becomes no lede; the line is "6 of 9 sentences are yours and the detail is spread thin...".
+- rank 365: "We consider: Intellectual potential and analytical thinking Curiosity..." (a flattened bullet list) becomes no lede; the line is hedged.
+
+So under the TL's bar, embarrassing on realistic copy is now **0 of 15**.
+
+**Over-correction check: nothing right was lost.**
+- Berea's "Work Program, stuck in sentence 10 behind 'close-knit community'" is unchanged (`r11s2e-375-berea.png`).
+- Loma Linda's "only faith-based academic health sciences centers" and Tennessee Tech's "#1 in Tennessee for ROI" are unchanged.
+- What went away: Program Finder (RC-1), "and certificate programs designed to ignite your ambition" (RC-2), the Peace Corps (RC-3), and the button-text lede at rank 328. Those pages now get hedged no-lede lines.
+
+**Tentative render** (`r11s2e-375-tentative.png`, input "...Ask about the Honors Scholars Program."): the Buried Lede title is "A candidate, not a verdict", with "We are not sure about this one." The Diagnosis says "your strongest candidate... *may be* the Honors Scholars Program". Modest and consistent across panels.
+
+## Known limits (non-blocking, from real copy)
+
+- Lead picked from event or portal lines: "Fall Open House..." (rank 48), "Join us for" (rank 515), "Your Personal Admissions Dashboard..." (rank 13). Suggest an Intake hint: "Paste body copy, not the whole page."
+- A cliché is read as a literal theme: "at the heart of every decision" maps to *place* (rank 90).
+- Another agency's recognition program is named as "your best detail" ("Michigan Veterans Affairs Agency Veteran-Friendly School Program", rank 90). It is real and checkable but is not the school's. Wrong, not embarrassing.
+- Generic structure crowned: "From a first-year seminar to your senior capstone..." (rank 48), while the same page's "guaranteed internship program" is missed.
+- A ranking is labeled "a thing that actually happens" (rank 66). The detail is right; the kind label is wrong.
+- Pasting ctrl-A text with no line breaks can produce garbled ledes. A flattened nav run can even yield a tentative candidate ("Minors Graduate Programs Online Programs A Campus"). Realistic pastes keep line breaks.
+- Real distinctives that a heuristic will not see: rank 110's "most student scholarships and grants among 4-year publics in Virginia" is not surfaced in the line-broken paste.
+- Earlier known limits stand: invented names, negation, non-English, Embalmed reachable only by junk, the classifier abstaining on about a third of sentences, and corpus slogans for Tracey's skim.
+
+---
+
 # Sprint 2 FINAL gate on real copy (HEAD af9d27a)
 
 The bar (TL's call): a must-fix is something that is **embarrassing on realistic copy** a higher ed marketer would paste. Crafted one-liners go to Known limits, stay pinned as `it.fails`, and do not block.
