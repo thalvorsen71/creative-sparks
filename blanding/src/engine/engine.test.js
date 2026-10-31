@@ -108,7 +108,7 @@ describe('calibration', () => {
   it('GENERIC hits most of the canonical cliches', () => {
     const ids = run('GENERIC').cliches.map((c) => c.id);
     for (const id of ['leaders-of-tomorrow', 'vibrant-community', 'world-class', 'hands-on', 'cutting-edge',
-      'prepare-future', 'discover-your-passion', 'make-a-difference', 'diverse-inclusive', 'tradition-of-excellence',
+      'prepare-future', 'make-a-difference', 'tradition-of-excellence',
       'transform-your-world', 'state-of-the-art', 'endless-opportunities', 'inside-outside-classroom', 'more-than-a-number']) {
       expect(ids).toContain(id);
     }

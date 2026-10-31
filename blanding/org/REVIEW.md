@@ -2,6 +2,21 @@
 
 Reviewer: R11 (Staff). Date: 2026-10-31. Everything below was run, not read, unless it is listed under "Not verified".
 
+# Tracey edit pass (uncommitted working tree on top of f50a902)
+
+**Verdict: SHIP, all lanes.**
+
+- **Pin:** GENERIC moves 31 to 32 (cliché subscore 3 to 4, hits 16 to 15). The only cause is that "diverse and inclusive" is no longer a cliché. That was Tracey's cut, so it is legitimate. I moved it myself in `engine.review.test.js`. The engine author correctly left it alone this time.
+- **Suite:** 195/195. `vite build` is clean.
+- **Dangling references:** none. `rg` across `src` for the 5 cut lexicon ids and the 5 cut poster pairs finds only R11's own `POOL_HIGH` membership set, which is harmless. `CLICHE_THEME` in insight.js and the canonical list in engine.test.js were updated to match.
+- **(a) Innovation lead with 0 examples, 375:** "You lead with innovation and future-readiness. 5% of the 150 schools..." Your quote is shown, then "No quotes on file for this theme yet." Clean, no overflow, no console errors. Screenshot: `/tmp/claude-0/-home-user/bce4c815-597f-5f19-a512-b5e87bbbc188/scratchpad/r11s2f-375-innovation-mirror.png`.
+- **For Tracey (non-blocking):**
+  - **Promoted quote.** The one quote promoted under "your own path" is "Working closely with a faculty advisor, our students choose what they study." It is the sentence just before the "physics, poetry, and music video production" line she cut, from the same school's quote. It is generic on its own, but she has not reviewed it.
+  - **Uncaught cliché in the sample.** The GENERIC sample still says "discover your passion", which is no longer flagged.
+  - **Breathing posters.** The breathing poster pool is now a single pair ("It Breathes"), so every 65-79 poster gets the same title.
+
+---
+
 # Sprint 2 real-copy re-gate (HEAD f50a902): FINAL
 
 ## Final verdicts

@@ -16,7 +16,8 @@ describe('R11 mutation kills', () => {
   // Calibration lock: exact scores and subscores of the shipped fixtures. If you retune on purpose, update these.
   it('pins fixture scores and subscores', () => {
     const pin = {
-      GENERIC: ['Northfield University', 31, { cliche: 3, specificity: 0, proof: 0, swap: 0 }],
+      // Tracey's lexicon cut (diverse-inclusive et al.): 16 -> 15 hits. Moved by R11.
+      GENERIC: ['Northfield University', 32, { cliche: 4, specificity: 0, proof: 0, swap: 0 }],
       // Retuned on purpose (MF1): "In 2024" is now a weak year, not full proof. Was 91 / specificity 86.
       SPECIFIC: ['Harrow College', 89, { cliche: 100, specificity: 81, proof: 100, swap: 100 }],
       MIXED: ['Brookline State', 62, { cliche: 31, specificity: 70, proof: 73, swap: 50 }],

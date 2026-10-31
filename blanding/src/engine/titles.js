@@ -11,10 +11,8 @@ const BY_CLICHE = {
   'excellence': { title: 'The Exorcism of Excellence', tagline: 'It said the word until the priest left.' },
   'commitment-to-excellence': { title: 'The Exorcism of Excellence', tagline: 'It said the word until the priest left.' },
   'state-of-the-art': { title: 'The Amityville Facilities', tagline: 'The buildings are new. The sentences are not.' },
-  'cutting-edge': { title: 'Edge of the Brochure', tagline: 'Cutting. Edge. Neither word is doing anything.' },
   'beautiful-campus': { title: 'A Nightmare on Elm Quad', tagline: 'Whatever you do, do not fall asleep on the tour.' },
   'find-your-place': { title: 'The Others', tagline: 'They found their place. It was everybody else\'s place too.' },
-  'more-than-a-number': { title: 'Number 23 Thousand', tagline: 'You are more than a number. The number is enrollment.' },
   'hands-on': { title: 'The Hands-On Resistance', tagline: 'Something is being touched. Nobody will say what.' },
   'transform-your-world': { title: 'The Fly-Through', tagline: 'Be afraid. Be very transformed.' },
 };
@@ -32,7 +30,6 @@ const POOLS = {
     { title: 'Night of the Living Brochure', tagline: 'They came from the viewbook. They want your prospects.' },
     { title: 'The Brochure Witch Project', tagline: 'They went looking for one specific fact. They were never seen again.' },
     { title: '28 Drafts Later', tagline: 'The committee got to it first.' },
-    { title: 'The Thing That Every School Says', tagline: 'It could be anyone. It could be you.' },
     { title: 'The Hills Have Buzzwords', tagline: 'And all of them are on your homepage.' },
   ],
   twitching: [
@@ -43,8 +40,6 @@ const POOLS = {
   ],
   breathing: [
     { title: 'It Breathes', tagline: 'Faint pulse. Strong opinions. Keep going.' },
-    { title: 'Get Out of the Brochure', tagline: 'Half of this escaped. Go back for the rest.' },
-    { title: 'The Specific Ones', tagline: 'They have names. They have numbers. They are getting closer.' },
   ],
   unmistakable: [
     { title: 'It Lives.', tagline: 'Nobody else could have written this.' },

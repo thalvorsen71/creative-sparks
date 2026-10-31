@@ -74,24 +74,11 @@ export const LEXICON = [
   ], 'Something will be different afterward.',
   'Show one before and one after. Name the student in both.', 3),
 
-  entry('discover-your-passion', 'discover your passion', [
-    /\b(?:discover|find|follow|pursue|ignite|fuel|explore|uncover|turn|unleash) (?:your|their) (?:passions?|purpose|calling|curiosity|ambitions?|spark)(?: into (?:a )?(?:career|purpose|profession))?\b/,
-  ], 'You do not know what you want. Same.',
-  'Name the class where students most often switch majors, and what they switch to.', 3),
-
   entry('make-a-difference', 'make a difference', [
     /\bmak(?:e|es|ing) (?:a |an )?(?:real |lasting |positive |meaningful |genuine |big )?(?:difference|impact)\b/,
     /\bmak(?:e|es|ing) (?:your|their) mark\b/,
   ], 'Something, somewhere, will change.',
   'Name the difference, who made it, and the number that moved.', 3),
-
-  entry('diverse-inclusive', 'diverse and inclusive', [
-    /\bdiverse,? (?:and|&) inclusive\b/,
-    /\binclusive,? (?:and|&) diverse\b/,
-    /\bwelcoming,? (?:and|&) inclusive\b/,
-    /\binclusive,? (?:and|&) welcoming\b/,
-  ], 'There is a statement about this somewhere.',
-  'Give the percentages, and name one policy that changed because of them.', 3),
 
   entry('endless-opportunities', 'endless opportunities', [
     /\b(?:endless|countless|limitless|unlimited|boundless|infinite|unparalleled|abundant|a wealth of|a world of|myriad|a myriad of|so many) (?:opportunities|possibilities|options|pathways|paths)\b/,
@@ -249,13 +236,6 @@ export const LEXICON = [
     /\bamong the (?:best|finest|top)\b/,
   ], 'We are in the top several hundred.',
   'Cite the ranking, or replace with the one thing you are actually first at.', 2),
-
-  entry('like-no-other', 'like no other', [
-    /\blike no other\b/,
-    /\blike nowhere else\b/,
-    /\bunlike any other\b/,
-  ], 'Like several others.',
-  'Name the thing. If a rival also has it, pick another thing.', 2),
 
   entry('rich-history', 'rich history', [
     /\b(?:rich|storied|proud|long|distinguished) (?:history|heritage|tradition|legacy)\b/,
@@ -424,11 +404,6 @@ export const LEXICON = [
   ], 'School is held here.',
   'Name the reading group, the lab meeting, or the late-night thing, and when.', 1),
 
-  entry('heart-of', 'in the heart of', [
-    /\b(?:at|in) the heart of\b/,
-  ], 'A location, said romantically.',
-  'Give the real geography: which street, how many minutes from what.', 1),
-
   entry('gateway', 'a gateway to', [
     /\bgateway to\b/,
     r(`\\blaunch${H}?pad\\b`),
@@ -474,11 +449,6 @@ export const LEXICON = [
     /\bjoin (?:us|our community|the [\w-]+ family|a community|our family)\b/,
   ], 'Please apply.',
   'Tell them what happens on their first day if they do.', 1),
-
-  entry('a-place-where', 'a place where', [
-    /\b(?:a|the) place where\b/,
-  ], 'This is a place.',
-  'Name the place. Literally: the building, the room.', 1),
 
   entry('tailored', 'tailored to you', [
     /\btailored to (?:your|you|each student|individual)\b/,
