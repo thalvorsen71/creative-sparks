@@ -129,18 +129,21 @@ function core(text, opts) {
   const specSub = specDen ? Math.round((100 * specNum) / specDen) : 0;
 
   // ---- promise vs proof ----
+  // One source of truth: the insight layer's proofKind. A promise is orphaned iff its proof is
+  // 'none' or 'restated_claim', so the ORPHANED tag and the PROOF tag can never disagree.
+  const insight = buildInsight(sentences);
   const orphans = [];
+  const evidence = new Set();
   let backed = 0;
-  let promises = 0;
-  sentences.forEach((s, i) => {
-    if (!s.isPromise) return;
-    promises++;
-    if (s.isProof) backed += 1;
-    else if (sentences[i + 1] && sentences[i + 1].isProof) backed += WEIGHTS.nextSentenceProof;
-    else orphans.push(i);
-  });
-  const proofs = sentences.filter((s) => s.isProof).length;
-  const proofSub = promises ? Math.round((100 * backed) / promises) : (proofs ? 100 : 50);
+  for (const p of insight.promises) {
+    if (p.proofKind === 'none' || p.proofKind === 'restated_claim') { orphans.push(p.sentenceIndex); continue; }
+    evidence.add(p.evidenceIndex);
+    backed += p.evidenceIndex === p.sentenceIndex ? 1 : WEIGHTS.nextSentenceProof;
+  }
+  const promises = insight.promises.length;
+  const proofs = evidence.size; // sentences that actually back a promise
+  const proofSentences = sentences.filter((s) => s.isProof).length;
+  const proofSub = promises ? Math.round((100 * backed) / promises) : (proofSentences ? 100 : 50);
 
   // ---- logo swap ----
   const survivors = sentences.filter((s) => s.swappable).map((s) => s.i);
@@ -162,8 +165,6 @@ function core(text, opts) {
 
   const band = bandFor(score);
   const swappedText = nameRe ? clean.replace(nameRe, SWAP_NAME) : clean;
-
-  const insight = buildInsight(sentences);
 
   return {
     score,

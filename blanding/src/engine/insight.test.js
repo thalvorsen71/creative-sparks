@@ -288,3 +288,28 @@ describe('R11 sprint 2 fixes: modest right beats confident wrong', () => {
     expect(run('STATS').diagnosis.line).toMatch(/^All receipts, no story: .*we could not find one that says how anything here works\.$/);
   });
 });
+
+describe('one source of truth: orphans and proofKind', () => {
+  const ADV = [
+    'Smith Hall, Jones Center and the Brown Quad are at the heart of campus. Our students thrive here.',
+    'Welcome home. Our vibrant community includes a Starbucks, a Chick-fil-A and the Student Recreation Center. You will find your place here.',
+    'Students must register for classes by August 1. We are a vibrant community.',
+    'Every year since 1985, the bookstore has held a sale in May. We prepare you for the future.',
+    'If your family earns under $80,000 a year, you pay no tuition. That has been true since 2019, and 1,140 students used it this fall.',
+    'At Northfield, you will thrive. Nursing students start clinical rotations in their first semester instead of their third. Faculty grade every lab report within 48 hours. We are proud of our graduates.',
+    'Our world-class faculty of 400 prepare you for the future. 98% of our vibrant community of 12,000 thrives.',
+    'We have 123 things and 456 others and 789 more.',
+    '• World-class faculty\n• Vibrant community\n• Hands-on learning',
+  ];
+  const reports = [...Object.keys(NAMES).map(run), ...ADV.map((t) => analyze(t, { schoolName: 'Northfield University' }))];
+  it('a promise is orphaned iff its proofKind is none or restated_claim, everywhere', () => {
+    for (const r of reports) {
+      const orphanSet = new Set(r.promiseProof.orphans);
+      expect(r.promiseProof.promises).toBe(r.promises.length);
+      for (const p of r.promises) {
+        expect(orphanSet.has(p.sentenceIndex), r.sentences[p.sentenceIndex].text).toBe(['none', 'restated_claim'].includes(p.proofKind));
+      }
+      for (const o of orphanSet) expect(r.promises.some((p) => p.sentenceIndex === o)).toBe(true);
+    }
+  });
+});

@@ -50,7 +50,9 @@ function expectShape(r) {
   expect(r.logoSwap.total).toBe(r.sentences.length);
   expect(r.logoSwap.survivors).toEqual(r.sentences.filter((s) => s.swappable).map((s) => s.i));
   expect(r.promiseProof.promises).toBe(r.sentences.filter((s) => s.isPromise).length);
-  expect(r.promiseProof.proofs).toBe(r.sentences.filter((s) => s.isProof).length);
+  expect(r.promiseProof.proofs).toBe(new Set(r.promises.filter((p) => !['none', 'restated_claim'].includes(p.proofKind)).map((p) => p.evidenceIndex)).size);
+  // One source of truth: ORPHANED and PROOF tags never disagree.
+  expect(r.promiseProof.orphans).toEqual(r.promises.filter((p) => ['none', 'restated_claim'].includes(p.proofKind)).map((p) => p.sentenceIndex));
   expect(Array.isArray(r.rivals)).toBe(true);
   expect(typeof r.diagnosis.title).toBe('string');
   expect(typeof r.diagnosis.tagline).toBe('string');
@@ -186,7 +188,8 @@ describe('promise and proof', () => {
     const r = analyze(t);
     expect(r.sentences.map((s) => s.isPromise)).toEqual([true, true, false, true]);
     expect(r.sentences.map((s) => s.isProof)).toEqual([false, false, true, false]);
-    expect(r.promiseProof.orphans).toEqual([0, 3]);
+    // "2 million books" is a number, not a mechanism: it does not back sentence 1 (one source of truth with proofKind).
+    expect(r.promiseProof.orphans).toEqual([0, 1, 3]);
   });
   it('GENERIC is all orphans', () => {
     const r = run('GENERIC');

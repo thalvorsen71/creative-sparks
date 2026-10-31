@@ -20,8 +20,9 @@ describe('R11 mutation kills', () => {
       // Retuned on purpose (MF1): "In 2024" is now a weak year, not full proof. Was 91 / specificity 86.
       SPECIFIC: ['Harrow College', 89, { cliche: 100, specificity: 81, proof: 100, swap: 100 }],
       MIXED: ['Brookline State', 62, { cliche: 31, specificity: 70, proof: 73, swap: 50 }],
-      AVERAGE: ['Wexley College', 54, { cliche: 72, specificity: 29, proof: 60, swap: 40 }],
-      PROGRAM: ['Calder University', 71, { cliche: 41, specificity: 74, proof: 80, swap: 75 }],
+      // ENGINE retune, sprint 2 (TL: orphans derive from proofKind). Was AVERAGE 54/proof 60, PROGRAM 71/proof 80. R11 to confirm.
+      AVERAGE: ['Wexley College', 50, { cliche: 72, specificity: 29, proof: 0, swap: 40 }],
+      PROGRAM: ['Calder University', 67, { cliche: 41, specificity: 74, proof: 30, swap: 75 }],
       STATS: ['Harrow College', 92, { cliche: 100, specificity: 88, proof: 100, swap: 100 }],
     };
     for (const [k, [name, score, subs]] of Object.entries(pin)) {
