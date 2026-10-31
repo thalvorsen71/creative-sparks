@@ -2,6 +2,84 @@
 
 Reviewer: R11 (Staff). Date: 2026-10-31. Everything below was run, not read, unless it is listed under "Not verified".
 
+# Sprint 2 re-gate (HEAD fa5b540)
+
+## Final verdicts
+
+| Lane | Verdict | Why |
+|------|---------|-----|
+| ENGINE | **NOT YET** (one small fix) | All six earlier sprint-2 must-fixes are fixed and verified. One new self-contradiction remains on good copy: MF-R1. |
+| EXPERIENCE | **NOT YET** (one-line fix) | The good sample's Mirror now praises proof-first, and "adeo's" is lowercase. But the Autopsy shows **PROOF** and **PROOF: NONE** on the same sentence: MF-R2. |
+| DATA | **SHIP** | PROVENANCE count is fixed (347). Unchanged otherwise. |
+| POSTER | **SHIP** | Unchanged. |
+
+Suite: 178/178 pass, `vite build` clean. No console errors and no horizontal overflow at 1280 or 375 on any of the 7 runs.
+
+## MUST-FIX (both small)
+
+1. **MF-R1 (ENGINE, `insight.js` diagnosisLine, final branch): a 93 "Unmistakable" paragraph is told "We could not find a detail only you could write: 0 of 3 sentences would survive a logo swap."** The colon offers "0 survivors" as evidence of the opposite. The input is realistic: `Northfield Promise covers tuition for 1,200 Ohio families. 98 percent of them graduate. Since 2015, 6,400 students have used it.` It is reached when every sentence is non-swappable, there is no lede, and `describesHow` blocks the "All receipts" line (a POLICY word such as covers tuition, pledge or policy). Also hit by `Our policy: 412 families paid nothing in 2025. ...` (95). Fix: when `survivors === 0`, never use the "could not find... N of M survive" template; say something like "Every sentence is yours; we just could not pick one to promote." Pinned by `it.fails` MF-R1 in `insight.review.test.js`. Screenshot: `r11s2b-1280-promise-insight.png`.
+2. **MF-R2 (EXPERIENCE, `Autopsy.jsx` tag row): "ORPHANED PROMISE · PROOF · PROOF: NONE" on one sentence.** The bare `Proof` tag still reads `s.isProof` (a name or a number), while ORPHANED and "Proof: X" now come from proofKind. Seen on `Smith Hall, Jones Center and the Brown Quad...` and on the Starbucks sentence ("PROOF · PROOF: RESTATES THE CLAIM"). Any real copy with a proper noun inside a cliché sentence will show it. Fix: drop the bare `Proof` tag on promise sentences (or rename it "Specific"). Screenshot: `r11s2b-375-halls-autopsy.png`.
+
+## Ruling on the edited pins (AVERAGE 54 to 50, PROGRAM 71 to 67)
+
+**They stand, but on substance, not on process.** I traced the cause: in AVERAGE, the one promise (s2, small classes) was previously "backed" by "more than 40 majors" in s3. Now a bare number is not a mechanism, so it is orphaned (proof subscore 60 to 0). In PROGRAM, s2 "dedicated faculty mentor students" was "backed" by an employer list in s3; it is now orphaned (80 to 30). Both are what MF-S6 asked for. AVERAGE 50 now matches the fixture's own stated target ("~50"). The calibration ranges in engine.test.js (45-58, 60-78) were not touched.
+
+**Process:** this is the second time the engine lane has edited R11-owned pins instead of sending them. The comment even says "R11 to confirm". Next time it gets reverted on sight.
+
+**Contract:** `promiseProof.proofs` now counts evidence sentences that back a promise, not proof sentences, and `orphans` now means "no mechanism-grade proof", not "no proof in the same or next sentence". That is a semantic change to a frozen field. The TL should add it to CONTRACT.md as Amendment 3.
+
+## Re-run: old adversarial set (all earlier sprint-2 bugs)
+
+| Input | Before | Now |
+|-------|--------|-----|
+| Good sample, Mirror | "We could not find a lead promise... a reader cannot repeat what you did not say" | **"You did not lead with a promise. You led with proof. Most schools do the opposite: 53%... lead with access and affordability."** Agrees with the Diagnosis |
+| No-tuition paragraph (90) | "All receipts... none says how anything works" / "Nothing only you could say" | **Lede = the policy, "a published policy, with terms anyone can check"**, "You open with... which is the move" |
+| Smith Hall / Jones Center | crowned "a named program" | No lede. Line hedged ("we could not find a detail"). Score 65 to 61 |
+| Student Recreation Center / Johnson Center | crowned | No lede |
+| `must register by August 1` / bookstore sale | crowned / fragment | No lede |
+| Starbucks proof kind | "A real mechanism" | "Restates the claim" / none (but see MF-R2) |
+| Nursing clinicals / 48-hour grading | "There is no detail here" | Lede = "Faculty grade every lab report within 48 hours" (structure) |
+| MIXED, PROGRAM, GENERIC, STATS, SPECIFIC | | Unchanged and correct |
+
+Every negative line is now hedged ("we could not find"). No line asserts an absence.
+
+## Three-plus new adversarial inputs (never used before)
+
+| Input | Score | Result | Verdict |
+|-------|-------|--------|---------|
+| `Our faculty include 4 Nobel laureates. Researchers here won $412 million in NSF and NIH grants last year. 91 percent of graduates are employed within six months.` | 95 | "All receipts, no story: ... we could not find one that says how anything here works." Mirror: proof-first | Correct, hedged, funny |
+| `Start here, finish anywhere. Credits transfer to all 14 state universities through our guaranteed transfer agreement. Classes cost $142 per credit hour.` | 73 | No lede; "We could not find a detail only you could write: 1 of 3..." | Hedged; misses a real policy (the policy pattern lacks "guaranteed transfer"). SHOULD-FIX |
+| `We are not a world-class university. We do not have a vibrant community. We have 12 students and a goat named Kevin.` | 43 | "You lead with prestige and rankings, like 11%..." | Negation is not understood. Funny, not harmful |
+| `Every first-year spends a week at the Kessler Farm, and the dining hall serves what they grow. ...` | 53 | **No lede.** "dining hall" in `TRIVIA` vetoes the whole sentence | Hedged, but a real lede is lost. SHOULD-FIX (`it.fails` SF-R2) |
+| `Rooted in the Catholic faith since 1872, ... Every student takes two theology courses and serves 40 hours in Toledo.` | 93 | Lead tradition (13%); lede = the requirement | Correct |
+| `Northfield Promise covers tuition for 1,200 Ohio families. ...` | 93 | **MF-R1** | Contradiction |
+
+## Mutants on the changed code (details.js, insight.js, index.js)
+
+16 new mutants (R01-R16) on the fix commits. **Shipped tests caught 9/16. With my review tests: 15/16.** R12 (dropping the `TRIVIAL_FIRST` guard) is equivalent: `findDetails` already returns `[]` for trivia, so `per[0].detail` is 0 either way. The guard is dead code.
+
+| R01 trivia filter | R02 facility needs activity | R03 geo needs activity | R04 must w1.5 | R05 fragment to sentence | R06 policy weight | R07 clinical/48h structure | R08 Starbucks not mechanism |
+|---|---|---|---|---|---|---|---|
+| caught | caught | **killed (new)** | **killed (new)** | caught | caught | **killed (new)** | caught |
+| **R09 next-sentence evidence** | **R10 describesHow** | **R11 proof_first** | **R12** | **R13 restated is orphan** | **R14 next-sentence weight** | **R15 first-sentence proof** | **R16 new ORG words** |
+| caught | **killed (new)** | caught | equivalent | caught | caught | **killed (new)** | **killed (new)** |
+
+Also: two of my sprint-2 `it.fails` tests went vacuous when the fix changed the line wording (`/none says how anything here actually works/`, `/^There is no detail here.../`). I tightened them to assert substance (the lede kind is `policy` or `structure`). The earlier insight mutants I01-I13 and D01-D08 still die. I03, D10 and R12 are equivalent. D03 is killed by a new mechanism-without-detail test, because the "must" weight change made my old D03 test vacuous.
+
+## Screenshots (`/tmp/claude-0/-home-user-creative-sparks/bce4c815-597f-5f19-a512-b5e87bbbc188/scratchpad/`)
+
+`r11s2b-{1280,375}-{bland,mixed,good,halls,promise,starbucks,notuition}-insight.png`, `r11s2b-{1280,375}-{good,halls}-poster.png`, `r11s2b-{1280,375}-halls-autopsy.png`. I looked at: good 375 (Mirror agrees with the Diagnosis), notuition 1280 (policy lede), promise 1280 (MF-R1), halls autopsy 375 (MF-R2).
+
+## SHOULD-FIX (re-gate)
+
+- `TRIVIA` vetoes whole sentences. Scope it to the clause, or require trivia to be the subject.
+- The policy pattern misses "guaranteed transfer", "covers tuition", "pledge".
+- Mirror proof-first subline: "Most schools do the opposite: 53%... lead with access" offers one theme's share as evidence for "most". Every school in the sample had a lead promise by construction, so it is true but loosely supported. Consider "The most common lead among the 150 schools we read is access and affordability (53%)."
+- Negation ("We are not a world-class university") is read as the cliché. Acceptable for a light tool.
+- Earlier SHOULD-FIX items (example curation, theme keywords, nav lines as sentences) are still open.
+
+---
+
 # Sprint 2 gate: the insight layer (HEAD b629c94)
 
 ## Verdicts

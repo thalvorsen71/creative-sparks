@@ -144,3 +144,14 @@ Report += {
 
 Rules: deterministic, no network. Distinctive detail means a mechanism, structure, named program, requirement,
 place or first: NOT just a number or a proper noun (the lesson of T0 v3). Corpus examples are shown without school names.
+
+---
+
+# AMENDMENT 3 (after R11 sprint 2 re-gate)
+
+- `promiseProof.orphans`: a promise sentence whose `promises[].proofKind` is `none` or `restated_claim`. Single source of truth with the Autopsy proof tags.
+- `promiseProof.proofs`: count of sentences that back at least one promise (were an `evidenceIndex`).
+- `lead.reason`: `'proof_first' | 'no_promise' | 'unclassified' | null` (null when a lead exists).
+- `buriedLede.kind`: string, e.g. 'named program' | 'mechanism' | 'policy' | 'place' | 'first' | 'requirement' | 'ritual'.
+- UI: proof tags in the Autopsy come ONLY from `promises[].proofKind` (sentence-level `isProof` is for scoring, not display).
+- Process: nobody edits R11's tests or pins. Send the change to R11.

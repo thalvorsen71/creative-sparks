@@ -100,7 +100,9 @@ describe('R11 sprint 2 projector bugs (fixed, flipped from it.fails)', () => {
   });
   it('FIXED MF-S3: a published no-tuition policy is not told it "says how nothing works"', () => {
     const r = A('If your family earns under $80,000 a year, you pay no tuition. That has been true since 2019, and 1,140 students used it this fall.');
-    expect(r.diagnosis.line).not.toMatch(/none says how anything here actually works/);
+    // Tightened at re-gate: the old regex went vacuous when the wording changed. Assert the substance.
+    expect(r.diagnosis.line).not.toMatch(/^All receipts/);
+    expect(r.buriedLede && r.buriedLede.kind).toBe('policy');
   });
   it('FIXED MF-S3: a no-tuition policy that 1,140 students used has a buried lede (it scores 90 and the page says "Nothing only you could say")', () => {
     const r = A('If your family earns under $80,000 a year, you pay no tuition. That has been true since 2019, and 1,140 students used it this fall.');
@@ -109,6 +111,43 @@ describe('R11 sprint 2 projector bugs (fixed, flipped from it.fails)', () => {
   });
   it('FIXED MF-S4: when the detector finds nothing, the line hedges instead of asserting there is nothing', () => {
     const r = A('At Northfield, you will thrive. Nursing students start clinical rotations in their first semester instead of their third. Faculty grade every lab report within 48 hours. We are proud of our graduates.');
+    // Tightened at re-gate (also kills R07): the mechanism is now found, not just hedged.
     expect(r.diagnosis.line).not.toMatch(/^There is no detail here only you could write/);
+    expect(r.buriedLede && r.buriedLede.kind).toBe('structure');
+  });
+});
+
+// Sprint 2 re-gate: kills for mutants on the fix commit (8cb269f, fa5b540).
+describe('R11 sprint 2 re-gate mutation kills', () => {
+  it('D03: a mechanism verb with no concrete detail is not a lede', () => {
+    expect(A('We test ideas here.').buriedLede).toBeNull();
+  });
+  it('R03: a map place with nothing happening there is not a lede', () => {
+    expect(A('We are glad you came. Our campus overlooks Delaware Bay.').buriedLede).toBeNull();
+  });
+  it('R04: "must" alone stays below the lede threshold', () => {
+    expect(A('We are glad you came. Students must complete 40 hours of community service.').buriedLede).toBeNull();
+  });
+  it('R15: a proof-first opening with a later generic line is still proof_first', () => {
+    expect(A('Founded in 1891. Come see us soon.').lead.reason).toBe('proof_first');
+  });
+  it('R16: a named Fund is a named program', () => {
+    expect(A('Welcome to campus. Students apply to the Kessler Fund for summer research.').buriedLede.detail).toBe('the Kessler Fund');
+  });
+  it('R10: copy that describes a policy is never "All receipts, no story"', () => {
+    const r = A('Northfield Promise covers tuition for 1,200 Ohio families. 98 percent of them graduate. Since 2015, 6,400 students have used it.');
+    expect(r.diagnosis.line).not.toMatch(/^All receipts/);
+  });
+});
+
+describe('R11 sprint 2 re-gate projector bugs (it.fails until fixed)', () => {
+  it.fails('MF-R1: "could not find a detail only you could write: 0 of 3 sentences would survive" contradicts itself (scores 93)', () => {
+    const r = A('Northfield Promise covers tuition for 1,200 Ohio families. 98 percent of them graduate. Since 2015, 6,400 students have used it.');
+    expect(r.score).toBeGreaterThanOrEqual(80);
+    expect(r.diagnosis.line).not.toMatch(/: 0 of \d+ sentences would survive/);
+  });
+  it.fails('SF-R2: the trivia filter vetoes a whole sentence ("dining hall" kills the Kessler Farm)', () => {
+    const r = A('Every first-year spends a week at the Kessler Farm, and the dining hall serves what they grow. We prepare you for the future.');
+    expect(r.buriedLede).not.toBeNull();
   });
 });
