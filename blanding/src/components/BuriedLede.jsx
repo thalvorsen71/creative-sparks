@@ -1,7 +1,7 @@
 import corpus from '../corpus/corpus.json';
 import { Label, SectionHead } from './ui.jsx';
 
-const POS = { lead: 'the first sentence', early: 'in the first third', buried: 'further down' };
+const POS = { lead: 'Right at the top. Good.', early: 'Early, but not first.', buried: 'Buried.' };
 
 export default function BuriedLede({ report }) {
   const b = report.buriedLede;
@@ -27,7 +27,7 @@ export default function BuriedLede({ report }) {
           <div className="self-start border-t border-ink pt-3 md:border-l md:border-t-0 md:pl-6 md:pt-0">
             <Label>Where it sits</Label>
             <p className="mt-1 font-mono text-sm">{where}</p>
-            <p className="mt-1 text-sm text-smoke">That is {POS[b.position] || 'somewhere in the copy'}.</p>
+            <p className="mt-1 text-sm text-smoke">{POS[b.position] || ''}</p>
           </div>
         </div>
       )}
