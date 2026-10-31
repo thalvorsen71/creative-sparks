@@ -25,3 +25,4 @@ Up to 5 per theme from agreed promises with `readers == 2`. Quotes are split int
 - Proof kinds were labelled by Haiku, post hoc; the 2-reader agreement applies to themes and support, not to kinds.
 - Reader audit stats: misquotes 11/1624 (Sonnet), 5/1577 (Opus) per the T0 agreement meta.
 - 2026-10-31: cut 'men of distinction' example (identifies an all-male college). Tracey's call. EXCLUDE list in build-corpus.py.
+- 2026-10-31: Tracey edit pass cut 3 examples (EXCLUDE list). Innovation theme now has 0 examples; one unreviewed quote promoted under 'your own path'.

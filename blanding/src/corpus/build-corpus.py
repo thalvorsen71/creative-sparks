@@ -86,6 +86,10 @@ def name_tokens(domain, titles):
 # Quotes that identify a school by context even with its name removed. Tracey-reviewed cuts.
 EXCLUDE = {
     "We produce innovators and leaders who are men of distinction.",  # points to an all-male college
+    # Tracey edit pass 2026-10-31: cut
+    "In a world of the common, we are the uncommon.",
+    "Discovery is not a solo sport.",
+    "Maybe it's physics, poetry, and music video production.",
 }
 
 

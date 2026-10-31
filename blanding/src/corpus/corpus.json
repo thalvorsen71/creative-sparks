@@ -84,8 +84,8 @@
    "examples": [
     "Find the program that's right for you.",
     "We can help you reach your goals.",
-    "Maybe it's physics, poetry, and music video production.",
     "You want a degree, we've got you covered.",
+    "Working closely with a faculty advisor, our students choose what they study.",
     "Your college journey is unique, and that is what makes it meaningful."
    ]
   },
@@ -131,10 +131,7 @@
    "label": "Innovation and future-readiness",
    "count": 8,
    "share": 0.053,
-   "examples": [
-    "Discovery is not a solo sport.",
-    "In a world of the common, we are the uncommon."
-   ]
+   "examples": []
   },
   {
    "id": "rigor / academic excellence",
