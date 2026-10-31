@@ -39,7 +39,7 @@ describe('R11 mutation kills', () => {
       { title: 'Night of the Living Brochure', tagline: 'They are vibrant. They are a community. They are coming for your prospects.' },
       { title: 'The Texas Chainsaw Mission Statement', tagline: 'Seven committees. One sentence. No survivors.' },
     ];
-    for (const t of themed) expect(r.diagnosis).not.toEqual(t);
+    for (const t of themed) expect({ title: r.diagnosis.title, tagline: r.diagnosis.tagline }).not.toEqual(t);
   });
 
   // M13: escapeRe must escape regex metacharacters in school names.

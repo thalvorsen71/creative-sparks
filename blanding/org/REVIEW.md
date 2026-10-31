@@ -2,6 +2,139 @@
 
 Reviewer: R11 (Staff). Date: 2026-10-31. Everything below was run, not read, unless it is listed under "Not verified".
 
+# Sprint 2 gate: the insight layer (HEAD b629c94)
+
+## Verdicts
+
+| Lane | Verdict | Why |
+|------|---------|-----|
+| ENGINE (insight.js, details.js) | **NOT YET** | It confidently tells a projector false things. It crowns building names as "a named program" and a registration deadline as "a requirement every student does". It tells the best paragraph I wrote that "none says how anything here actually works". |
+| EXPERIENCE (Diagnosis, Mirror, Buried Lede) | **NOT YET** | On the **"Try a good one" sample** the Mirror says "We could not find a lead promise... a reader cannot repeat what you did not say", directly under a Diagnosis praising it. On a 90-scoring paragraph the page shows "Unmistakable" and "Nothing only you could say" together. Every run prints "FROM adeo'S BLANDING RESEARCH". |
+| DATA (corpus.json, build-corpus.py) | **SHIP** | Deterministic, every number I recomputed from the T0 files matches, and all 40 quotes are verbatim. One doc inconsistency and some curation items (below). |
+| POSTER | **SHIP** | Unchanged. Renders for all samples and the adversarial inputs. |
+
+Baseline: `npx vitest run` 161/161 pass (4 files, including my 7 `it.fails` projector bugs). `vite build` is clean (363 kB JS / 122 kB gzip). No console errors and no horizontal overflow at 1280 or 375 on any of the six runs.
+
+## MUST-FIX before AMA (ranked)
+
+1. **MF-S5 (EXPERIENCE + ENGINE): the best copy gets scolded.**
+   - *Try a good one* (Harrow, 89 Unmistakable): the Diagnosis says "you opened with the proof". Directly below, the Mirror says "We could not find a lead promise. Nothing in this copy reads as a clear first promise. That is its own finding: a reader cannot repeat what you did not say." (`Mirror.jsx` `none` branch; `lead.confidence === 'none'` because proof-first copy has no `isPromise` sentence.)
+   - No-tuition paragraph (`If your family earns under $80,000 a year, you pay no tuition. That has been true since 2019, and 1,140 students used it this fall.`) scores 90 "Nobody else could have written this. Frame it." It also gets "All receipts, no story: ... none says how anything here actually works" (`insight.js` diagnosisLine, the `proofs >= ceil(0.6n) && survivors === 0` branch) and Buried Lede "Nothing only you could say."
+   - Three panels contradict the score on the copy we most want to praise. Fix: when there is no promise but the copy is proof (score >= 75 or `survivors === 0`), the Mirror should say something like "You skipped the promise and went straight to proof. Most schools do the opposite." Gate the "All receipts" line on the absence of a mechanism/policy (POLICY regex already exists in insight.js), and let `published_policy` count as a lede kind in details.js.
+2. **MF-S1 (ENGINE, details.js `ORG`): buildings, rec centers and libraries are "named programs".** `ORG` includes Hall, House, Center, Library, Museum, etc.
+   - `Smith Hall, Jones Center and the Brown Quad are at the heart of campus.` gives the Diagnosis "You open with Smith Hall, which is the move: most schools open with a promise, you opened with the proof." The Buried Lede says "It is a named program, not an adjective." The score is 65 Breathing.
+   - `...includes a Starbucks, a Chick-fil-A and the Student Recreation Center` crowns "the Student Recreation Center".
+   - `Visit the Johnson Center, the Miller Library...` crowns "the Johnson Center".
+   - Fix: drop building nouns (Hall, House, Center/Centre, Library, Museum, Theater/Theatre, Studio) from `ORG`, or accept them only together with a verb of activity in the same sentence.
+3. **MF-S2 (ENGINE, details.js `PATTERNS`): trivial rules and events are crowned.**
+   - `Students must register for classes by August 1.` gives "a requirement, something every student actually does", plus the "you opened with the proof" line.
+   - `Every year since 1985, the bookstore has held a sale in May.` gives "a ritual with a start date", and the detail shown in 5xl type is the dangling clause "Every year since 1985" (`clauseAround` cut at the comma).
+   - Fix: never let the `must` requirement pattern alone produce a lede (needsDetail is satisfied by any date). When a clause has fewer than 5 words, extend it to the whole sentence.
+4. **MF-S6 (ENGINE + EXPERIENCE): "Proof: A real mechanism" on a Starbucks.** `proofKindFor` falls back to `operating_mechanism` whenever `isProof` is true, and any proper noun makes `isProof` true. So `Our vibrant community includes a Starbucks...` and `Smith Hall, Jones Center...` are tagged **PROOF: A REAL MECHANISM** in the Autopsy. Fix: the fallback should be a neutral label (for example "A name or a number") unless `findDetails` returned a mechanism, structure, requirement or ritual.
+5. **MF-S4 (ENGINE, diagnosisLine): "There is no detail here only you could write" is stated as fact when it only means the detector found nothing.** `Nursing students start clinical rotations in their first semester instead of their third. Faculty grade every lab report within 48 hours.` gets exactly that line. The mechanism verb list misses "start" and "grade". The Buried Lede panel already hedges ("We did not find it on this page"); the line should too ("We could not find a detail only you could write").
+6. **MF-S7 (EXPERIENCE, Mirror.jsx footer): "FROM adeo'S BLANDING RESEARCH".** The `normal-case` span wraps only `adeo`, so the `'s` is uppercased. It shows on every run (`r11s2-1280-good-insight.png`). Move the `'s` inside the span.
+
+Items 1, 2, 3 and 5 are pinned by `it.fails` tests in `src/engine/insight.review.test.js`. Flip each to `it()` when it is fixed.
+
+## Fooling the buried lede and the diagnosis (engine called directly; the starred rows were also run in the browser)
+
+| Input | Score | Diagnosis line / buried lede | Verdict |
+|-------|-------|------------------------------|---------|
+| MIXED sample* | 62 | "...the Competitive Pierogi Society, is stuck in sentence 2 behind 'vibrant community'." | Correct, and the best line in the product |
+| PROGRAM fixture | 71 | "...the Pelican Point Field Station, shows up one sentence too late." | Correct |
+| Mechanism, no proper noun: `every first-year takes the same two seminars, taught by pairs of professors...` | 42 | Lede = that clause, "waits until sentence 3 of 4" | Correct |
+| Mechanism, no proper noun: nursing clinicals in semester 1, lab reports graded in 48 hours | 47 | "There is no detail here only you could write" | **Wrong, stated as fact** (MF-S4) |
+| `Our vibrant community includes a Starbucks. ...` | 42 | No lede; Autopsy tag "Proof: A real mechanism" | Lede right, tag wrong (MF-S6) |
+| `...a Starbucks, a Chick-fil-A and the Student Recreation Center` * | 53 | Lede "the Student Recreation Center", "a named program" | **Wrong** (MF-S1) |
+| `Smith Hall, Jones Center and the Brown Quad are at the heart of campus.` * | 65 | "You open with Smith Hall, which is the move" | **Wrong, total confidence** (MF-S1) |
+| `Every student gets a free T-shirt at orientation.` | 44 | No lede | Correct |
+| `the only university in the county with a Panera` | 54 | No lede | Correct |
+| `first college in the state to offer online parking permits` | 36 | No lede | Correct |
+| `Students must register for classes by August 1.` | 50 | "You open with 'Students must register...', which is the move" | **Wrong** (MF-S2) |
+| `Every year since 1985, the bookstore has held a sale in May.` | 56 | Lede "Every year since 1985", "a ritual" | **Wrong + fragment** (MF-S2) |
+| Tagline `Where Leaders Begin.` | 31 | "One line, and it is career outcomes: the lead promise at 39% of the schools we read." | OK. "a lead promise" would be more exact |
+| Tagline `Rise.` / `Affordable. Accessible. Excellent.` | 49 | "One line, and any school could sign it." / "Nothing here is only yours." | Correct |
+| `The only college where every student rows.` | 45 | "you opened with the proof" | A claim, not proof. Minor |
+| No-tuition policy paragraph* | 90 | "All receipts, no story... none says how anything here actually works" | **Wrong** (MF-S5) |
+| STATS fixture | 92 | "All receipts, no story" | Correct, and funny |
+| 27-line homepage paste (nav, news, footer) | 45 | Lede "Lake Erie" (from a news headline), "behind 16 sentences any school could sign" | Defensible. Nav items ("Apply Now", "Give") count as sentences. SHOULD-FIX |
+| `We are not like other schools.` + clichés | 32 | "You lead with career outcomes... every sentence would survive a logo swap." | Correct |
+| Spanish copy | 49 | "Nothing here is only yours." | English-only. Acceptable |
+
+Grammar: every line I generated (about 40) was one well-formed sentence with no dashes. The only awkward ones were "waits until sentence 2 of 2" and "the lead promise at 39%".
+
+## Corpus honesty
+
+- **Determinism:** I ran `python3 -I src/corpus/build-corpus.py /home/user/blanding-t0 <out>` twice. Both outputs and the committed `corpus.json` have the same SHA-256 (`f7615d1d...`).
+- **Spot checks, recomputed independently from the T0 files (not with the build script).** All match:
+
+| Number | Corpus | My recount from T0 |
+|--------|--------|--------------------|
+| Schools with an agreed promise | 150 | 150 (151 keys, 1 empty) |
+| Access/affordability | 80, 0.533 | 80 / 150 |
+| Career outcomes | 59, 0.393 | 59 / 150 |
+| Support backed | 0.781 | 271 / 347 |
+| Proof spans, operational_practice | 130 of 582 | 130 of 582 (all 7 kinds match) |
+| Proof location | 11 / 160 / 68 of 239 | 11 / 160 / 68 of 239 |
+
+- **Doc inconsistency (SHOULD-FIX):** `PROVENANCE.md` says support is over **344** promises (269/36/39), copied from the stale T0 `_meta`. The data and `meta.sampleNote` use **347** (271/37/39). T0's own `_meta.agreed_types` is also stale (access 79, purpose 30, rigor 5 vs 80/31/6 in the per-school data). The shares are right; fix the PROVENANCE sentence.
+- **"Lead with" wording is supported.** T0 `config/promise_rules_v3.md` defines 0 to 3 "lead promises" per school, and `SPEC.md` uses "41% lead with the same promise". So "39% of the 150 schools we read lead with the same promise" is what was measured: share of schools with an agreed lead promise in that theme. A school has 1 to 3 of them, so the shares sum to 231%. Nobody should add them up on stage.
+- **"About 1 in 5 pieces of 'evidence' just restated the claim"** (Autopsy): 109/582 = 18.7%. Accurate. Spans from both readers are counted, as PROVENANCE says.
+- **"Of 239 concrete details our readers found across 150 schools, 11 were on a homepage. The rest were one or two clicks down."** (Buried Lede): this matches T0 `details` depth 0/1/2, and it says "found", not "exclusive". Accurate.
+- **Examples:** all 40 are verbatim agreed quotes. I traced each to exactly one source school. One differs only by a newline that was normalized. None names a school. Curation issues for Tracey's skim (not false, but they will read badly or be recognizable on a projector):
+  - *Recognizable slogans:* "Dream it, learn it, do it." (alma.edu), "Discovery is not a solo sport." (osu.edu), "In a world of the common, we are the uncommon." (vcu.edu), "Leaving your comfort zone to land somewhere better." (ncsu.edu), "Big enough to take you anywhere." (ucwv.edu). A room of higher ed marketers may recognize these.
+  - *Context-dependent fragments:* "One that is poised for growth, innovation, and opportunity." (purpose), "That means we are dedicated to..." (career; **shown on the bland sample**), "It's not just our motto, it's our practice." (hands-on).
+  - *Off-theme:* "Here, you're surrounded by people who genuinely care..." is filed under tradition/faith but reads as belonging. "One that is poised for growth, innovation..." is filed under purpose.
+
+## Theme classifier (30 sentences I wrote, 10 per theme)
+
+| Theme | Right | Abstained (null) | Wrong |
+|-------|-------|------------------|-------|
+| Access and affordability | 5 | 4 | 1 ("within reach for every family" was read as belonging) |
+| Career outcomes | 7 | 3 | 0 |
+| Belonging and community | 7 | 3 | 0 |
+| **Total** | **19/30 (63%)** | 10 | 1 |
+
+Precision is 19/20 when it answers. It fails safe (abstains) far more than it mislabels. The misses are keyword gaps: "price", "paying for", "full demonstrated need", "resume", "recruiters", "friendships", "each other".
+
+## Mutation testing, sprint 2
+
+23 mutants on `insight.js` (13) and `details.js` (10), one at a time, file restored after each, `git diff src/engine` empty afterwards. **Shipped suite: 4/23 caught.** The insight tests check shapes, not decisions. I added kill tests in `src/engine/insight.review.test.js`. **After: 21/23.** The 2 survivors are equivalent: I03 (every detail weight is at least 2, so a lede threshold of 2 vs 1 cannot differ) and D10 (ORG/GEO need capitals, so an uppercase-token guard is redundant).
+
+| | I01 lead threshold | I02 early boundary | I04 cliché nudge | I05 lede tie order | I06 kind order | I07 evidence backward | I08 restated any theme | I09 example rotation | I10 pct floor | I11 receipts ignores survivors | I12 behind-count | I13 firsts quoted |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| shipped | miss | miss | miss | miss | miss | **caught** | miss | miss | miss | miss | miss | miss |
+| + review | caught | caught | caught | caught | caught | caught | caught | caught | caught | caught | caught | caught |
+
+| | D01 program weight | D02 generic firsts | D03 needsDetail | D04 clause cut | D05 multi-kind bonus | D06 "the" prefix | D07 tie order | D08 no-majors | D09 place weight |
+|---|---|---|---|---|---|---|---|---|---|
+| shipped | **caught** | **caught** | miss | miss | miss | miss | miss | **caught** | miss |
+| + review | caught | caught | caught | caught | caught | caught | caught | caught | caught |
+
+Sprint 1 mutant set (46) re-run on HEAD: 44/46 before, **45/46 after**. M10 had come back to life: my sprint-1 test compared `r.diagnosis` to `{title, tagline}`, and Amendment 2 added `line`, so the test passed vacuously. I fixed the assertion in `engine.review.test.js`. M09 is still equivalent.
+
+## SHOULD-FIX
+
+- PROVENANCE.md: 344 vs 347 (above).
+- Curate the slogan and fragment examples (above). A human skim before AMA, as PROVENANCE itself advises.
+- Theme keywords: price, paying, demonstrated need, resume, recruiters, friendships.
+- Homepage paste: nav and footer lines ("Apply Now", "Give", "Privacy Policy | Accessibility") count as sentences and as "sentences any school could sign".
+- The Autopsy "Proof: X" tag on sentence i can describe evidence that sits in sentence i+1. Add "(next sentence)".
+- "Where Leaders Begin." gives "the lead promise at 39%"; "a lead promise" is more exact.
+
+## Screenshots (scratchpad `/tmp/claude-0/-home-user-creative-sparks/bce4c815-597f-5f19-a512-b5e87bbbc188/scratchpad/`)
+
+`r11s2-{1280,375}-{bland,mixed,good,halls,starbucks,notuition}-insight.png`, `r11s2-{1280,375}-{good,halls}-poster.png`. The key ones are `r11s2-1280-good-insight.png` (Mirror contradiction plus "adeo'S"), `r11s2-375-halls-insight.png` (Smith Hall crowned) and `r11s2-375-notuition-insight.png` (90 Unmistakable next to "Nothing only you could say").
+
+## Not verified (sprint 2)
+
+- T0 example quotes in their original page context, beyond tracing each to its school.
+- Whether T0's Haiku-labelled proof kinds are themselves right (PROVENANCE flags this).
+- Rival Séance and three-things flows on the new build. Unchanged code paths, not re-driven this round.
+- Safari, Firefox, the real projector, offline.
+
+---
+
 # Re-gate, round 2 (after f4e0238 engine fixes, UI fixes in 1ca7f1a/6ac46c0)
 
 ## Final verdicts

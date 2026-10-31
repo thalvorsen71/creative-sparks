@@ -10,7 +10,7 @@
 ## Counts and how computed
 - Sample: 150 schools with at least one agreed promise. The file holds 151 school keys; `barnard.edu` has no agreed promise and is excluded. Sample = wide25 + 15 lowest + 15 highest + 95 seeded random (seed 20261026) out of 562 captured. Not a pure random sample.
 - Theme share = schools with an agreed promise in the theme / 150. A theme counts once per school.
-- Support = shares over 344 agreed promises: backed 269, claim_only 36, split 39.
+- Support = shares over 347 agreed promises: backed 271, claim_only 37, split 39.
 - Proof kinds = 582 evidence spans across the 150 schools (both readers' spans, so a span both readers cite counts twice). Kinds use T0 names. Each also carries `engineKind`, the Amendment 2 engine value: operational_practice=operating_mechanism, documented_outcome=reported_outcome, funded_commitment=published_policy, documented_experience=example_or_story, restated_claim and third_party_recognition unchanged. announced_intention has no engine equivalent (null). The mapping is approximate.
 - Proof location = `details` depth over ring150: 11 homepage, 160 one click, 68 two clicks, of 239. The wide25 file gives 3 / 38 / 16 of 57, identical to HANDOFF.md; it is kept in `proofLocation.wide25`. The contract's top-level numbers use ring150 (the same sample as everything else); say so if you quote the HANDOFF figures.
 - `generated` is the latest dated session heading in HANDOFF.md (not today's date), so the build is reproducible.
