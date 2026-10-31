@@ -37,7 +37,8 @@ function expectShape(r) {
     expect(typeof s.isProof).toBe('boolean');
     expect(typeof s.swappable).toBe('boolean');
     expect(Array.isArray(s.specifics)).toBe(true);
-    expect(Object.keys(s).sort()).toEqual(['cliches', 'i', 'isPromise', 'isProof', 'specifics', 'swappable', 'text']);
+    expect(Object.keys(s).sort()).toEqual(['cliches', 'i', 'isPromise', 'isProof', 'specifics', 'swappable', 'swapped', 'text']);
+    expect(typeof s.swapped).toBe('string');
   });
   for (const c of r.cliches) {
     expect(Object.keys(c).sort()).toEqual(['count', 'fix', 'id', 'phrase', 'severity', 'translation']);
@@ -118,7 +119,7 @@ describe('calibration', () => {
 });
 
 describe('empty and garbage input', () => {
-  for (const input of ['', '   ', '\n\n\t', null, undefined, 42, '!!!', '...', 'asdf', {}]) {
+  for (const input of ['', '   ', '\n\n\t', null, undefined, '!!!', '...', {}, '<p>&nbsp;</p>']) {
     it(`does not throw on ${JSON.stringify(input)}`, () => {
       const r = analyze(input);
       expect(r.score).toBe(0);
@@ -374,5 +375,72 @@ describe('sentence splitting', () => {
   });
   it('breaks on newlines', () => {
     expect(splitSentences('Apply Now\nVisit Campus')).toEqual(['Apply Now', 'Visit Campus']);
+  });
+});
+
+describe('R11 fixes', () => {
+  const N = { schoolName: 'Northfield University' };
+  it('MF1: bare numbers are not proof, attached numbers are', () => {
+    expect(analyze('123 456 789').score).toBeLessThan(30);
+    expect(analyze('4 8 15 16 23 42. 7 11 13 17 19. 2024 2025 2026.').score).toBeLessThan(30);
+    expect(analyze('Call 555-123-4567. Zip 90210. Room 101. Code 42.').score).toBeLessThan(30);
+    const r = analyze('We have 14 students per class. Admission is rolling 2025.');
+    expect(r.sentences[0].isProof).toBe(true);
+    expect(r.sentences[1].isProof).toBe(false);
+    for (const t of ['31 percent of graduates', '$18,450 after aid', 'running since 1937', 'the Class of 2025', 'a 90-minute exam']) {
+      expect(analyze(`It has ${t} here.`).sentences[0].isProof, t).toBe(true);
+    }
+  });
+  it('MF1: a year on every generic sentence does not rescue it', () => {
+    const gamed = F.GENERIC.split(/(?<=\.)\s+/).map((s) => s.replace(/\.$/, ' in 2025.')).join(' ');
+    expect(analyze(gamed, N).score).toBeLessThan(45);
+  });
+  it('MF1: real proof copy still scores 85+', () => {
+    expect(run('SPECIFIC').score).toBeGreaterThanOrEqual(85);
+    expect(run('STATS').score).toBeGreaterThanOrEqual(85);
+  });
+  it('MF1: HTML tags are stripped and entities decoded', () => {
+    const r = analyze('<div class="col-12 mt-4" data-id="98234"><p>We offer a great&nbsp;education.</p></div>');
+    expect(r.sentences.map((s) => s.text)).toEqual(['We offer a great education.']);
+    expect(r.score).toBeLessThan(50);
+  });
+  it('MF1: a cliche-heavy text is capped at Twitching', () => {
+    const r = analyze('Our world-class faculty of 400 prepare you for the future. 98% of our vibrant community of 12,000 thrives.');
+    expect(r.subscores.cliche).toBeLessThan(25);
+    expect(r.score).toBeLessThanOrEqual(64);
+  });
+  it('MF2: bulleted cliches are not proper nouns, whatever the marker', () => {
+    for (const m of ['•', '-', '*', '—', '1.']) {
+      const r = analyze(`${m} World-class faculty\n${m} Vibrant community\n${m} Hands-on learning`, N);
+      expect(r.sentences.map((s) => s.text), m).toEqual(['World-class faculty', 'Vibrant community', 'Hands-on learning']);
+      expect(r.sentences.every((s) => s.specifics.length === 0), m).toBe(true);
+      expect(['haunted', 'embalmed'], m).toContain(r.band.id);
+    }
+  });
+  it('MF2: inline bullets and Title Case list items split and stay generic', () => {
+    const r = analyze('Welcome to our school. • Small Class Sizes • Caring Faculty • Beautiful Campus');
+    expect(r.stats.sentences).toBe(4);
+    expect(r.sentences.every((s) => s.swappable)).toBe(true);
+    expect(r.score).toBeLessThan(50);
+  });
+  it('MF2: Unicode hyphens are still caught', () => {
+    expect(analyze('Our world‑class faculty.').sentences[0].cliches.map((c) => c.id)).toContain('world-class');
+  });
+  it('MF6: one or two words get diagnosed, not the blank page', () => {
+    const r = analyze('Excellence');
+    expect(r.cliches.map((c) => c.id)).toEqual(['excellence']);
+    expect(r.diagnosis.title).not.toBe('The Blank Page');
+    expect(r.score).toBeLessThan(50);
+    expect(analyze('World-class faculty').stats.clicheHits).toBe(1);
+  });
+  it('Amendment 1: sentences[].swapped uses whole-word, escaped name forms', () => {
+    const a = analyze('Penn is in Pennsylvania. We love Penn.', { schoolName: 'Penn' });
+    expect(a.sentences.map((s) => s.swapped)).toEqual(['Literally Any University is in Pennsylvania.', 'We love Literally Any University.']);
+    const b = analyze("St. Mary's (MD) is a vibrant community. Go.", { schoolName: "St. Mary's (MD)" });
+    expect(b.sentences[0].swapped).toBe('Literally Any University is a vibrant community.');
+    const c = analyze(F.GENERIC, N);
+    expect(c.sentences[3].swapped.startsWith('At Literally Any University, you will')).toBe(true);
+    expect(c.sentences.map((s) => s.swapped).join(' ')).toBe(c.logoSwap.swappedText);
+    expect(analyze(F.MIXED).sentences.every((s) => s.swapped === s.text)).toBe(true);
   });
 });

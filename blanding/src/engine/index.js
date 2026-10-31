@@ -1,6 +1,6 @@
 // Blanding 3.0 engine. Contract: org/CONTRACT.md. Pure, deterministic, no DOM, no network.
 import { LEXICON, LEXICON_INDEX } from './lexicon.js';
-import { splitSentences, words as wordList, nameRegex, hasContent } from './text.js';
+import { splitSentences, words as wordList, nameRegex, hasContent, stripHtml } from './text.js';
 import { findCliches, findSpecifics, isPromise } from './detect.js';
 import { diagnose } from './titles.js';
 import { compareRival } from './rivals.js';
@@ -9,7 +9,6 @@ import { checkDistinction } from './distinction.js';
 export { LEXICON, checkDistinction };
 
 export const SWAP_NAME = 'Literally Any University';
-export const MIN_WORDS = 3;
 
 const BANDS = [
   [80, 'unmistakable', 'Unmistakable', 'Nobody else could have written this. Frame it.'],
@@ -35,6 +34,10 @@ export const WEIGHTS = {
   specShare: 0.55,   // within positive
   clicheDecay: 16,   // severity points per 100 words that cost ~63% of the cliche subscore
   nextSentenceProof: 0.6, // proof one sentence later counts, but less
+  clicheCapBelow: 25,  // cliche subscore under this...
+  clicheCap: 64,       // ...caps the score at Twitching
+  minAlphaShare: 0.6,  // under this share of real words, the text is junk...
+  junkCap: 45,         // ...and the score is capped at junkCap * share (so at most 27)
 };
 
 const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
@@ -63,9 +66,10 @@ function dominantCliche(cliches) {
 
 function core(text, opts) {
   const o = opts && typeof opts === 'object' ? opts : {};
-  const clean = typeof text === 'string' ? text.trim() : String(text ?? '').trim();
-  // Fewer than three words is a fragment, not copy. Score 0 rather than pretend.
-  if (!hasContent(clean) || wordList(clean).length < MIN_WORDS) return emptyReport(clean, o);
+  const input = typeof text === 'string' ? text : (text == null || typeof text === 'object' ? '' : String(text));
+  const clean = stripHtml(input).trim();
+  // Only truly empty input gets the empty report. One word still gets diagnosed.
+  if (!hasContent(clean)) return emptyReport(clean, o);
 
   const nameRe = nameRegex(o.schoolName);
   const raw = splitSentences(clean);
@@ -81,6 +85,7 @@ function core(text, opts) {
       isProof: spec.strong >= 1,
       specifics: spec.tokens,
       swappable: spec.strong < 0.75 && spec.weight < 1,
+      swapped: nameRe ? t.replace(nameRe, SWAP_NAME) : t,
       _w: wordList(t).length,
       _spec: spec,
     };
@@ -140,7 +145,14 @@ function core(text, opts) {
   const positive = 100 * Math.pow(positiveLinear / 100, WEIGHTS.positiveCurve);
   let score = WEIGHTS.base + WEIGHTS.positive * positive + WEIGHTS.proof * proofSub + WEIGHTS.cliche * clicheSub;
   const pureProof = n > 0 && hits === 0 && sentences.every((s) => s.isProof) && specSub === 100;
-  score = Math.round(clamp(score, 1, pureProof ? 100 : 99));
+  score = clamp(score, 1, pureProof ? 100 : 99);
+  // Copy that is a third cliche cannot be Breathing, whatever else it contains.
+  if (clicheSub < WEIGHTS.clicheCapBelow) score = Math.min(score, WEIGHTS.clicheCap);
+  // Text that is mostly digits or symbols is not copy. "123 456 789" scores near zero.
+  const tokens = clean.match(/[\p{L}\p{N}][\p{L}\p{N}'\u2019,.-]*/gu) || [];
+  const alphaShare = tokens.length ? tokens.filter((w) => /\p{L}{2,}/u.test(w)).length / tokens.length : 0;
+  if (alphaShare < WEIGHTS.minAlphaShare) score = Math.min(score, WEIGHTS.junkCap * alphaShare);
+  score = Math.round(clamp(score, 0, 100));
 
   const band = bandFor(score);
   const swappedText = nameRe ? clean.replace(nameRe, SWAP_NAME) : clean;

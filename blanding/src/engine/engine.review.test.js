@@ -17,7 +17,8 @@ describe('R11 mutation kills', () => {
   it('pins fixture scores and subscores', () => {
     const pin = {
       GENERIC: ['Northfield University', 31, { cliche: 3, specificity: 0, proof: 0, swap: 0 }],
-      SPECIFIC: ['Harrow College', 91, { cliche: 100, specificity: 86, proof: 100, swap: 100 }],
+      // Retuned on purpose (MF1): "In 2024" is now a weak year, not full proof. Was 91 / specificity 86.
+      SPECIFIC: ['Harrow College', 89, { cliche: 100, specificity: 81, proof: 100, swap: 100 }],
       MIXED: ['Brookline State', 62, { cliche: 31, specificity: 70, proof: 73, swap: 50 }],
       AVERAGE: ['Wexley College', 54, { cliche: 72, specificity: 29, proof: 60, swap: 40 }],
       PROGRAM: ['Calder University', 71, { cliche: 41, specificity: 74, proof: 80, swap: 75 }],
@@ -98,21 +99,21 @@ describe('R11 mutation kills', () => {
 });
 
 // Live defects found in review. These assert the CORRECT behavior and are expected to fail today.
-describe('R11 known bugs (it.fails until fixed)', () => {
-  it.fails('BUG: bare digits are not distinction ("123 456 789" scores 96 Unmistakable)', () => {
+describe('R11 known bugs (fixed by Engine lane, flipped from it.fails)', () => {
+  it('FIXED: bare digits are not distinction ("123 456 789" scores 96 Unmistakable)', () => {
     expect(analyze('123 456 789').score).toBeLessThan(65);
   });
-  it.fails('BUG: HTML attribute numbers count as proof', () => {
+  it('FIXED: HTML attribute numbers count as proof', () => {
     expect(analyze('<div class="col-12 mt-4" data-id="98234"><p>We offer a great education.</p></div>').score).toBeLessThan(65);
   });
-  it.fails('BUG: a bulleted list of cliches scores Breathing (bullet glyph defeats sentence-start check)', () => {
+  it('FIXED: a bulleted list of cliches scores Breathing (bullet glyph defeats sentence-start check)', () => {
     expect(analyze('• World-class faculty\n• Vibrant community\n• Hands-on learning').score).toBeLessThan(50);
   });
-  it.fails('BUG: appending a year to every generic sentence lifts GENERIC from 31 to Breathing', () => {
+  it('FIXED: appending a year to every generic sentence lifts GENERIC from 31 to Breathing', () => {
     const gamed = F.GENERIC.split(/(?<=\.)\s+/).map((s) => s.replace(/\.$/, ' in 2025.')).join(' ');
     expect(analyze(gamed, { schoolName: 'Northfield University' }).score).toBeLessThan(55);
   });
-  it.fails('BUG: a one or two word paste is reported as "The Blank Page"', () => {
+  it('FIXED: a one or two word paste is reported as "The Blank Page"', () => {
     expect(analyze('World-class faculty').diagnosis.title).not.toBe('The Blank Page');
   });
 });

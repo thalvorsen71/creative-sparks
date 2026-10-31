@@ -14,11 +14,38 @@ export function hasContent(s) {
   return /[\p{L}\p{N}]/u.test(String(s || ''));
 }
 
-// Split into sentences. Newlines always break (headlines rarely end in periods).
+const ENTITIES = { nbsp: ' ', amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", rsquo: '\u2019', lsquo: '\u2018',
+  rdquo: '\u201d', ldquo: '\u201c', mdash: ', ', ndash: ', ', hellip: '...', bull: '\u2022', middot: '\u00b7' };
+
+// Pasted CMS markup: drop tags (their attributes are full of digits), keep block breaks, decode entities.
+export function stripHtml(text) {
+  let t = String(text || '');
+  if (/<\/?[a-z!][^>]*>/i.test(t)) {
+    t = t.replace(/<(script|style)\b[\s\S]*?<\/\1\s*>/gi, ' ')
+      .replace(/<!--[\s\S]*?-->/g, ' ')
+      .replace(/<\/?(?:p|div|br|li|ul|ol|h[1-6]|tr|td|th|section|article|header|footer|blockquote|dd|dt)\b[^>]*>/gi, '\n')
+      .replace(/<\/?[a-z!][^>]*>/gi, ' ');
+  }
+  return t.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, e) => {
+    if (e[0] === '#') {
+      const n = e[1] === 'x' || e[1] === 'X' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10);
+      return Number.isFinite(n) && n > 0 && n < 0x110000 ? String.fromCodePoint(n) : ' ';
+    }
+    return ENTITIES[e.toLowerCase()] ?? m;
+  }).replace(/[ \t\u00a0]+/g, ' ').replace(/ *\n[\s]*/g, '\n');
+}
+
+// List markers at the start of a line: bullets, dashes, asterisks, "1." "2)" "a.".
+const LIST_MARKER = /^\s*(?:[\u2022\u00b7\u25aa\u25ab\u2023\u25e6\u25cf\u25cb\u25a0\u25a1\u2043*>\u2013\u2014-]+|\d{1,2}[.)]|[a-zA-Z][.)])\s+/u;
+
+// Split into sentences. Newlines and bullet glyphs always break (headlines and list items rarely end in periods).
 export function splitSentences(text) {
   const out = [];
-  for (const line of String(text || '').split(/\r?\n+/)) {
-    const chunk = line.trim();
+  const lines = String(text || '')
+    .replace(/\s[\u2022\u00b7\u25aa\u25e6\u25cf]\s/gu, '\n')
+    .split(/\r?\n+/);
+  for (const line of lines) {
+    const chunk = line.replace(LIST_MARKER, '').trim();
     if (!chunk) continue;
     const re = /([.!?]+)(["'”’)\]]*)(\s+)(?=["'“‘(\[]?[\p{Lu}\p{N}])/gu;
     let start = 0;

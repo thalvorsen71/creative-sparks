@@ -2,7 +2,7 @@
 // Voice rules: deadpan, accurate, mean to the copy and never to the reader. No em dashes.
 // Severity: 1 = filler, 2 = generic claim, 3 = terminal (shows up on every site in America).
 
-const H = '[- ]'; // hyphen or space: "world-class" and "world class"
+const H = '[- \\u2010\\u2011]'; // hyphen, space, or the Unicode hyphens Word and CMSs paste in: "world-class" and "world class"
 
 function entry(id, phrase, patterns, translation, fix, severity) {
   return {

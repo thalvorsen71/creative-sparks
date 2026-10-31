@@ -65,6 +65,25 @@ whiteboard chalkboard notebook notebooks clipboard wetsuit waders shovel shovels
 
 const CAP_RUN = /[\p{Lu}][\p{L}\p{N}'’.&-]*(?:\s+(?:of|the|for|de|du|da|del|la|le|von|van)\s+[\p{Lu}][\p{L}\p{N}'’.&-]*|\s+[\p{Lu}][\p{L}\p{N}'’.&-]*)*/gu;
 
+const NUM_FILLER = new Set('and or to the a an of in on at is are was were by for from with as than'.split(' '));
+
+// How much a number is worth, given its neighbors.
+//   1    attached: "14 students", "90-minute exam", "31 percent", "$18,450", "since 1937", "Class of 2025", "size: 17"
+//   0.5  labeled by a capitalized word: "Room 204", "Chemistry 101"
+//   0.4  a year with a bare preposition: "in 2025"
+//   0.2  bare: "123", "Code 42."
+export function numberWeight(tok, before, after) {
+  if (/^\$|%|percent|million|billion/i.test(tok)) return 1;
+  if (/\b(?:since|founded in|established in|chartered in|opened in|class of|est\.?|no\.?|number|ranked)\s*$/i.test(before) || /#\s*$/.test(before)) return 1;
+  if (/[a-z]\s*:\s*$/i.test(before)) return 1;
+  const next = (after.match(/^-?\s?([a-z][\w'\u2019-]*)/) || [])[1];
+  const isYear = /^(?:1[6-9]|20)\d\d$/.test(tok);
+  if (next && !NUM_FILLER.has(next.toLowerCase()) && !isYear) return 1;
+  if (isYear) return 0.4;
+  if (/\p{Lu}[\p{L}]*\.?\s$/u.test(before) && !/^[\s\-]*\d/.test(after) && !/^\s*$/.test(before.slice(0, -1).replace(/\S+\s?$/, '')) ) return 0.5;
+  return 0.2;
+}
+
 function cleanWord(w) {
   const t = w.replace(/(?:['’]s?)$/u, '').replace(/,+$/, '');
   return /^(?:Dr|Mr|Mrs|Ms|St|Mt|Jr|Sr|Ft)\.$/.test(t) ? t : t.replace(/\.+$/, '');
@@ -83,11 +102,18 @@ export function findSpecifics(text, nameRe) {
   for (const m of t.matchAll(SOURCES)) { tokens.push(m[0]); strong += 1; }
   t = t.replace(SOURCES, (m) => ' '.repeat(m.length)); // so "U.S. News" is not also read as a name
 
-  // Numbers
-  for (const m of t.matchAll(NUMBER)) {
-    const tok = m[0].trim();
-    if (!tok) continue;
-    tokens.push(tok); strong += 1;
+  // Numbers. A bare number is not proof: it has to count something.
+  // In a sentence that is mostly digits (phone numbers, IDs, "123 456 789"), numbers count for nothing.
+  const allTok = t.match(/[\p{L}\p{N}][\p{L}\p{N}'\u2019,.-]*/gu) || [];
+  const alphaShare = allTok.length ? allTok.filter((w) => /\p{L}{2,}/u.test(w)).length / allTok.length : 0;
+  if (alphaShare >= 0.5) {
+    for (const m of t.matchAll(NUMBER)) {
+      const tok = m[0].trim();
+      if (!tok) continue;
+      const w = numberWeight(tok, t.slice(0, m.index), t.slice(m.index + m[0].length));
+      if (w >= 0.4) tokens.push(tok);
+      if (w >= 1) strong += 1; else soft += w;
+    }
   }
 
   // Spelled numbers: half credit, not on their own proof.
@@ -101,7 +127,7 @@ export function findSpecifics(text, nameRe) {
   const capShare = ws.length ? ws.filter((w) => /^\p{Lu}/u.test(w)).length / ws.length : 0;
   const terminal = /[.!?]["'\u201d\u2019)\]]*\s*$/.test(text);
   const headline = ws.length >= 2 && (capShare >= 0.75 || (!terminal && capShare >= 0.6));
-  const firstWordAt = (t.match(/^[\s"'“(]*/) || [''])[0].length;
+  const firstWordAt = (t.match(/^(?:[\s"'\u201c(\u2022\u00b7\u25aa\u2023\u25e6\u25cf*>\u2013\u2014-]|\d+[.)]\s)*/u) || [''])[0].length;
   for (const m of headline ? [] : t.matchAll(CAP_RUN)) {
     let wordsIn = m[0].split(/\s+/);
     const atStart = m.index === firstWordAt;
