@@ -45,6 +45,9 @@ Report = {
     isProof: boolean,       // contains evidence: number, %, named person/place/program, date, ranking source
     specifics: string[],    // the tokens that made it specific
     swappable: boolean,     // true = would read fine on any school's site
+    swapped: string,        // AMENDMENT 1 (after R11): this sentence with the school name (full + stem,
+                            // whole words only) replaced by logoSwap.swapName. UI renders this; it does
+                            // not re-implement the swap.
   }>,
   cliches: Array<{          // aggregated, sorted by count desc
     id: string,
