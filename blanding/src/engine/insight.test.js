@@ -359,3 +359,19 @@ describe('praise matches the band', () => {
     expect(analyze('Come visit. Credits transfer to all 14 state universities through our guaranteed transfer agreement.').buriedLede).toMatchObject({ kind: 'policy' });
   });
 });
+
+describe('percentages measure populations, not feelings', () => {
+  it('abstract percentages are claims', () => {
+    for (const t of ['Our pledge to you: 100% commitment.', 'Our commitment to you is 100% real.', 'We give 110 percent focus to every student.']) {
+      const r = analyze(t);
+      expect(r.sentences[0].isProof, t).toBe(false);
+      expect(r.score, t).toBeLessThan(65);
+      expect(r.buriedLede, t).toBeNull();
+    }
+  });
+  it('population and outcome percentages are proof', () => {
+    for (const t of ['31 percent of graduates went on to law.', 'Our graduation rate of 88% leads the state.', '94 percent of the Class of 2025 employed.']) {
+      expect(analyze(t).sentences[0].isProof, t).toBe(true);
+    }
+  });
+});

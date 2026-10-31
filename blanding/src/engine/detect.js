@@ -77,7 +77,15 @@ features moments stories adventures memories offerings solutions`.split(/\s+/).f
 //   0.4  a year with a bare preposition: "in 2025"
 //   0.2  bare: "123", "Code 42."
 export function numberWeight(tok, before, after) {
-  if (/^\$|%|percent|million|billion/i.test(tok)) return 1;
+  if (/^\$|million|billion/i.test(tok)) return 1;
+  // A percentage is proof only when it measures a population or an outcome:
+  // "31 percent of graduates", "94 percent of the Class of 2025", "a graduation rate of 88%".
+  // "100% commitment" or "100% real" is a claim wearing a number.
+  if (/%|percent/i.test(tok)) {
+    const POP = /^\s*of\s+(?:the\s+|our\s+|all\s+|its\s+|their\s+|this\s+|last\s+)?(?:[\w'\u2019-]+\s+){0,2}?(?:[a-z][\w-]*s|alumni|faculty|staff|people|children|women|men|them|those|Class|class|cohort|families)\b/i;
+    if (POP.test(after) || /\b(?:rate|ratio|share|percentage|retention|graduation|placement|acceptance|admit)\s*(?:of|is|was|at|:|reached|hit)?\s*$/i.test(before)) return 1;
+    return 0.2;
+  }
   if (/\b(?:since|founded in|established in|chartered in|opened in|class of|est\.?|no\.?|number|ranked)\s*$/i.test(before) || /#\s*$/.test(before)) return 1;
   if (/[a-z]\s*:\s*$/i.test(before)) return 1;
   const next = (after.match(/^-?\s?([a-z][\w'\u2019-]*)/i) || [])[1];
