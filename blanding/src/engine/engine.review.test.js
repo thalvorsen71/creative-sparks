@@ -117,3 +117,40 @@ describe('R11 known bugs (fixed by Engine lane, flipped from it.fails)', () => {
     expect(analyze('World-class faculty').diagnosis.title).not.toBe('The Blank Page');
   });
 });
+
+// Re-gate (round 2): kills for mutants that survived the fix commit (N02, N03, N04, N06, N11, N16).
+describe('R11 re-gate mutation kills', () => {
+  it('N02: a number followed by a filler word is not attached', () => {
+    expect(analyze('We have 300 and counting here.').sentences[0].isProof).toBe(false);
+  });
+  it('N03: a mostly-digit sentence earns no number credit, even with a noun on the end', () => {
+    const r = analyze('We teach 40 students. 1 2 3 4 5 6 7 8 9 10 classes.');
+    expect(r.sentences.map((s) => s.isProof)).toEqual([true, false]);
+  });
+  it('N04: a bare number is not proof', () => {
+    expect(analyze('We went 42.').sentences[0].isProof).toBe(false);
+  });
+  it('N06: a bullet glued to the first word still counts as sentence start', () => {
+    const r = analyze('•World-class faculty\n•Vibrant community');
+    expect(r.sentences.every((s) => s.specifics.length === 0)).toBe(true);
+  });
+  it('N11: inline tags are stripped, not just block tags', () => {
+    expect(analyze('<p>Our <strong>vibrant community</strong> awaits you.</p>').sentences[0].text).toBe('Our vibrant community awaits you.');
+  });
+  it('N16: decoded entities never put an em or en dash on screen', () => {
+    for (const e of ['&mdash;', '&ndash;']) expect(analyze(`We teach${e}and we listen.`).sentences[0].text).not.toMatch(/[–—]/);
+  });
+});
+
+// Re-gate (round 2): remaining limits. it.fails = documents current behavior; flip to it() when fixed.
+describe('R11 re-gate known limits (it.fails until fixed)', () => {
+  it.fails('SHOULD-FIX: vague counted nouns ("123 things") still score Unmistakable', () => {
+    expect(analyze('We have 123 things and 456 others and 789 more.').score).toBeLessThan(65);
+  });
+  it.fails('SHOULD-FIX: a capital-letter initial is eaten as a list marker ("A. Smith" shows as "Smith")', () => {
+    expect(analyze('A. Smith founded the college in 1891.').sentences[0].text).toBe('A. Smith founded the college in 1891.');
+  });
+  it.fails('SHOULD-FIX: ALL CAPS proof loses number credit ("112 BOOKS" is not attached)', () => {
+    expect(analyze('EVERY STUDENT READS 112 BOOKS.').sentences[0].isProof).toBe(true);
+  });
+});

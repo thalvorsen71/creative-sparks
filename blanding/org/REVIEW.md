@@ -2,6 +2,73 @@
 
 Reviewer: R11 (Staff). Date: 2026-10-31. Everything below was run, not read, unless it is listed under "Not verified".
 
+# Re-gate, round 2 (after f4e0238 engine fixes, UI fixes in 1ca7f1a/6ac46c0)
+
+## Final verdicts
+
+| Lane | Verdict | Why |
+|------|---------|-----|
+| ENGINE | **SHIP** | MF1, MF2 and MF6 are fixed and verified by real scores (table below). The two gaming routes that remain need a deliberately built sentence, and the cliché cap keeps cliché copy out of Breathing. |
+| EXPERIENCE | **SHIP** | MF3, MF4 and MF5 were verified in the browser at 1280 and 375. No console errors, no horizontal overflow, download works, the ladder banner fires. |
+| POSTER | **SHIP** | Unchanged. "Excellence" now gets a real diagnosis poster instead of "The Blank Page". |
+
+Suite: 103/103 pass (2 files), including 3 `it.fails` known-limit tests. `vite build` is clean.
+
+## The two calls the TL asked for
+
+**1. SPECIFIC pin 91 to 89: legitimate, not goalpost-moving.** I checked the cause instead of trusting the comment. I applied only `isYear` weight 0.4 to 1 to the new engine. SPECIFIC went straight back to 91 / specificity 86, and the engine was restored afterwards. So the whole 2-point drop comes from "In 2024" becoming a weak year, which is exactly the MF1 rule I asked for. The calibration range test (78-95) was not touched, the other five pins are unchanged, and the edit is commented in place. Accepted. One process note: the pin lives in an R11-owned file. Next time, send the change to R11 instead of editing it, even when it is right.
+
+**2. "GENERIC + Dr. Bob Smith" = 64: an acceptable limit, not a must-fix.** An offline tool cannot tell a real professor from an invented one, and no rule I can write would separate "Dr. Bob Smith" from "Dr. Ruth Abara". The fix commit already bounds the damage: when the cliché subscore is under 25 the score is capped at 64. That puts it in Twitching ("Something moved. Could have been the wind."), not a triumph poster. Clean invented names with no clichés reach 66 (Zorblax case), so the ceiling for fake names is the bottom of Breathing. My recommendation is one line on stage: "It checks that you named something, not that it's true. Your boss checks that."
+
+## Re-run adversarial (new engine, real scores)
+
+| Input | Before | Now | Band now |
+|-------|--------|-----|----------|
+| `123 456 789` | 96 | **0** | Embalmed |
+| `4 8 15 16 23 42. 7 11 13...` | 96 | **0** | Embalmed |
+| Phone/zip junk | 87 | **23** | Embalmed |
+| HTML with digit attributes | 96 | **45** | Haunted (tags stripped) |
+| CMS hero HTML | 33 | 32 | Haunted. Tags and `&nbsp;` gone from Autopsy |
+| GENERIC + " in 2025" per sentence | 69 | **34** | Haunted |
+| GENERIC + "(N0 students)" per sentence | n/a | 64 | Twitching (cliché cap) |
+| GENERIC + ", says Dr. Bob Smith." | 68 | **64** | Twitching (cliché cap) |
+| 4 clichés + real counts (`world-class faculty of 400...`) | 76 | **64** | Twitching (cap) |
+| `•`/`-`/`*`/`—`/`1.` cliché bullets | 71 | **31** | Haunted |
+| Inline `•` bullets Title Case | 54 | 32 | Haunted |
+| `Excellence` / `World-class faculty` | 0, Blank Page | **31** | Haunted, "The Exorcism of Excellence" / "Texas Chainsaw Mission Statement" |
+| `world‑class` (U+2011) | missed | caught | |
+| Fake proper nouns, no clichés | 66 | 66 | Breathing (limit, see call 2) |
+| **`We have 123 things and 456 others and 789 more.`** | 96 | **96** | **Unmistakable** (SHOULD-FIX R1) |
+| `We offer great programs for 300 students. ... 12 buildings. ... 5 dining halls.` | n/a | 85 | Unmistakable. Real counts, bland claims. Defensible. |
+| SPECIFIC / STATS / good narrative / lowercase specifics | 91/92/77/79 | 89/92/77/79 | unchanged bands |
+| ALL CAPS SPECIFIC | 87 | **74** | Breathing (SHOULD-FIX R3) |
+| Lorem ipsum / Spanish / Chinese | 49/49/0 | 49/49/49 | Haunted (WAITING #6) |
+| 84,000 words | 328 ms | 374 ms | fine |
+
+## Re-run mutants
+
+46 mutants: the original 30 (M07 and M09 re-targeted at the new code) plus 16 new ones (N01-N16) on numberWeight, the junk and cliché caps, stripHtml, list markers, firstWordAt, Unicode hyphens, `swapped`, and entity decoding. Before my round-2 tests: **39/46** caught. Survivors: N02 (filler word attaches a number), N03 (digit-heavy sentence keeps number credit), N04 (bare number is full proof), N06 (firstWordAt reverted), N11 (inline tags not stripped), N16 (`&mdash;` decodes to an em dash), and M09. I added a kill test for each to `engine.review.test.js`. **After: 45/46.** M09 is still equivalent (the max raw score is 96). `git diff src/engine` was empty after every mutant, apart from my test file.
+
+## Browser (vite :5180, Playwright, 1280 and 375, server killed after)
+
+- Swap on the bland sample: 2 LITERALLY ANY UNIVERSITY stamps, including "At LITERALLY ANY UNIVERSITY, you will...". No "Northfield" left. Swap off restores both names. `r11b-1280-swap-bland.png`, `r11b-375-swap-bland.png`
+- Active cliché: solid blood `rgb(193,39,45)` with paper text, readable. `r11b-375-active-cliche.png`, `r11b-1280-active-cliche.png`
+- `Excellence`: 31 Haunted, 1 Autopsy row, poster "The Exorcism of Excellence / It said the word until the priest left. / Rated G: Contains strong language: 'excellence.'" `r11b-1280-poster-excellence.png`, `r11b-375-poster-excellence.png`
+- "by adeo" / "Built by adeo." render lowercase at both widths.
+- Console errors: none. Overflow: none. Rivals x2, three-things banner and download all work.
+
+## Remaining SHOULD-FIX (none blocks the talk)
+
+- **R1. Vague counted nouns.** `numberWeight` (`detect.js`) attaches a number to any following non-filler word, so `123 things`, `456 others` and `789 more` all count, and the sentence scores 96 Unmistakable. A small stoplist (`things others more stuff ways items reasons people options`) would close it. Cheap; do it before the talk if anyone has 10 minutes. `it.fails` test in place.
+- **R2. A capital initial is eaten as a list marker.** `LIST_MARKER` in `text.js` takes `[a-zA-Z][.)]`, so "A. Smith founded the college in 1891." displays as "Smith founded...". Limit it to lowercase letters, or to `[a-z])`. `it.fails` test in place.
+- **R3. ALL CAPS numbers lose credit.** The `next` regex in `numberWeight` is lowercase-only (`[a-z]`), so "112 BOOKS" is not attached. Add the `i` flag. `it.fails` test in place.
+- R4. A bullet glued to its word ("•World-class") is scored correctly, but the bullet still shows in the Autopsy text.
+- R5. The round-1 SHOULD-FIX items below are still open, except SF4 (HTML, done) and SF10 (Unicode hyphen, done). Embalmed is now reachable, but only by junk; real cliché copy still floors at 31 (WAITING #6).
+
+---
+
+# Round 1 (original gate, kept for the record)
+
 ## Verdicts
 
 | Lane | Verdict | One line |
