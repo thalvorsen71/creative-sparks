@@ -97,3 +97,50 @@ Array of `{ id, phrase, patterns: RegExp[], translation, fix, severity }`.
 - Deterministic: same input, same output.
 - Never throws on empty/whitespace/garbage input. Returns score 0 and empty arrays.
 - No em dashes anywhere in user-facing strings. Use colons, commas, periods.
+
+---
+
+# AMENDMENT 2 (sprint 2: the insight layer). Owner: Overall TL.
+
+Direction from Tracey: ignore the old T0 rules (score, fixes, jokes all allowed). Make it amazing:
+smart, insightful, funny. Insight comes from REAL corpus data, not vibes.
+
+## Corpus file: `src/corpus/corpus.json` (DATA lane owns; engine imports it)
+
+```js
+CORPUS = {
+  meta: { source: string, schools: number, sampleNote: string, generated: 'YYYY-MM-DD', files: string[] },
+  themes: Array<{ id: string,        // T0 theme label, exact, e.g. 'access / affordability'
+                  label: string,     // display label, e.g. 'Access and affordability'
+                  count: number, share: number,   // share of schools with an agreed lead promise in this theme
+                  examples: string[] }>,          // up to 5 REAL verbatim agreed quotes, NO school names
+  support: { backed: number, claim_only: number, split: number },   // shares 0-1 of agreed promises
+  proofKinds: Array<{ kind: string, label: string, count: number, share: number }>,
+  proofLocation: { homepage: number, oneClick: number, twoClicks: number, total: number, source: string },
+}
+```
+
+## Report additions (ENGINE lane)
+
+```js
+Report += {
+  themes: Array<{ id, label, sentences: number[] }>,     // T0 theme ids detected, by sentence
+  lead: { themeId: string|null, label: string|null, sentenceIndex: number|null, quote: string|null,
+          confidence: 'clear'|'weak'|'none',
+          corpusShare: number|null,     // CORPUS share for that theme
+          examples: string[] },         // up to 3 CORPUS examples for the same theme (deterministic pick)
+  promises: Array<{ sentenceIndex, themeId: string|null,
+                    proofKind: 'restated_claim'|'operating_mechanism'|'reported_outcome'|'published_policy'
+                             |'example_or_story'|'third_party_recognition'|'none',
+                    evidenceIndex: number|null }>,
+  buriedLede: null | { sentenceIndex, text, detail: string,   // the most distinctive concrete thing
+                       position: 'lead'|'early'|'buried',     // first sentence | first third | later
+                       why: string },
+  diagnosis += { line: string },  // ONE plain-English sentence a VP understands, built from findings.
+                                  // e.g. "You lead with affordability, like 53% of schools we read,
+                                  // and your best detail, the Competitive Pierogi Society, is buried in sentence 2."
+}
+```
+
+Rules: deterministic, no network. Distinctive detail means a mechanism, structure, named program, requirement,
+place or first: NOT just a number or a proper noun (the lesson of T0 v3). Corpus examples are shown without school names.
