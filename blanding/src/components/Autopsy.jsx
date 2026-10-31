@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import corpus from '../corpus/corpus.json';
 import { Label, SectionHead, focusRing } from './ui.jsx';
 
 function Tag({ children, blood }) {
@@ -12,13 +13,22 @@ function Tag({ children, blood }) {
 export default function Autopsy({ report }) {
   const [open, setOpen] = useState(null);
   const byId = Object.fromEntries(report.cliches.map((c) => [c.id, c]));
+  const kinds = Object.fromEntries((report.promises || []).map((p) => [p.sentenceIndex, p.proofKind]));
+  const KIND = { restated_claim: 'Restates the claim', operating_mechanism: 'A real mechanism', reported_outcome: 'An outcome',
+    published_policy: 'A published policy', example_or_story: 'An example', third_party_recognition: 'Third-party recognition', none: 'None' };
+  const restated = (corpus?.proofKinds || []).find((k) => k.kind === 'restated_claim');
   const orphans = new Set(report.promiseProof.orphans);
 
   return (
     <div>
-      <SectionHead n={2} title="The Autopsy">
+      <SectionHead n={3} title="The Autopsy">
         Your copy, one sentence at a time. Red marks are clichés. Press one to see what it actually says.
       </SectionHead>
+      {restated?.share > 0 && (
+        <p className="-mt-2 mb-6 border-l-4 border-blood pl-4 text-sm">
+          Across the schools we read, {Math.round(restated.share * 100)}% of promises are backed only by a restatement of the promise.
+        </p>
+      )}
       <ol className="grid gap-5">
         {report.sentences.map((s) => {
           const parts = [];
@@ -41,6 +51,7 @@ export default function Autopsy({ report }) {
                 <p className="text-lg leading-relaxed">
                   {orphan ? <Tag blood>Orphaned promise</Tag> : s.isPromise && <Tag>Promise</Tag>}
                   {s.isProof && <Tag>Proof</Tag>}
+                  {kinds[s.i] && <Tag>Proof: {KIND[kinds[s.i]] || kinds[s.i]}</Tag>}
                   {parts.map((p, k) =>
                     p.c ? (
                       <button key={k} type="button" aria-expanded={open === key(p.c)}

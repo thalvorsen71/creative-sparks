@@ -3,7 +3,7 @@ import { SectionHead } from './ui.jsx';
 export default function Rivals({ report }) {
   return (
     <div>
-      <SectionHead n={5} title="Rival Séance">
+      <SectionHead n={6} title="Rival Séance">
         You are not competing with them. You are harmonizing with them.
       </SectionHead>
       <ul className="grid gap-4 md:grid-cols-3">

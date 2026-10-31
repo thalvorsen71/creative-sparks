@@ -4,6 +4,9 @@ import { GENERIC, SPECIFIC } from './engine/fixtures.js';
 import PosterCard from './poster/PosterCard.jsx';
 import Masthead from './components/Masthead.jsx';
 import Intake from './components/Intake.jsx';
+import Diagnosis from './components/Diagnosis.jsx';
+import Mirror from './components/Mirror.jsx';
+import BuriedLede from './components/BuriedLede.jsx';
 import Score from './components/Score.jsx';
 import Autopsy from './components/Autopsy.jsx';
 import LogoSwap from './components/LogoSwap.jsx';
@@ -54,13 +57,16 @@ export default function App() {
 
         {run && (
           <main ref={resultsRef} key={run.id} className="mt-20 grid scroll-mt-4 gap-20" aria-label="Results">
-            <Reveal><Score report={run.report} /></Reveal>
+            <Reveal><Diagnosis report={run.report} /></Reveal>
+            {run.report.lead && <Reveal delay={0.04}><Mirror report={run.report} /></Reveal>}
+            <Reveal delay={0.06}><BuriedLede report={run.report} /></Reveal>
+            <Reveal delay={0.08}><Score report={run.report} /></Reveal>
             <Reveal delay={0.08}><Autopsy report={run.report} /></Reveal>
             <Reveal delay={0.12}><LogoSwap report={run.report} schoolName={run.schoolName} /></Reveal>
             <Reveal delay={0.16}><HitList report={run.report} /></Reveal>
             {run.report.rivals.length > 0 && <Reveal delay={0.2}><Rivals report={run.report} /></Reveal>}
             <Reveal delay={0.24}>
-              <SectionHead n={run.report.rivals.length ? 6 : 5} title="The Poster">Screenshot it. Send it to your VP.</SectionHead>
+              <SectionHead n={run.report.rivals.length ? 7 : 6} title="The Poster">Screenshot it. Send it to your VP.</SectionHead>
               <PosterCard report={run.report} schoolName={run.schoolName} />
             </Reveal>
           </main>

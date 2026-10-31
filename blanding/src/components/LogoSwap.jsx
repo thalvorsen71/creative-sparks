@@ -26,7 +26,7 @@ export default function LogoSwap({ report, schoolName }) {
 
   return (
     <div>
-      <SectionHead n={3} title="The Logo Swap">
+      <SectionHead n={4} title="The Logo Swap">
         Replace your name with a stranger's. If the sentence still works, it was never yours.
       </SectionHead>
       <div className="flex flex-wrap items-center gap-4">

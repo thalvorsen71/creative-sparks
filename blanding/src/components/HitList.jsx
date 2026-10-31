@@ -5,7 +5,7 @@ export default function HitList({ report }) {
   const list = report.cliches;
   return (
     <div>
-      <SectionHead n={4} title="Cliché Hit List">Sorted by how often you used them. Skulls show how terminal each one is.</SectionHead>
+      <SectionHead n={5} title="Cliché Hit List">Sorted by how often you used them. Skulls show how terminal each one is.</SectionHead>
       {list.length === 0 ? (
         <p className="border border-ink p-4">No clichés found. Suspicious, but we will allow it.</p>
       ) : (
