@@ -176,3 +176,20 @@ describe('R11 sprint 2 engine confirm (it.fails until fixed)', () => {
     expect(A('Our commitment to you is 100% real.').score).toBeLessThan(65);
   });
 });
+
+// Final gate on REAL copy (T0 captured page text, school names stripped or replaced with fictional ones).
+// These are embarrassing on realistic pastes and block the engine under the TL's real-copy bar.
+describe('R11 real-copy bugs (it.fails until fixed)', () => {
+  it.fails('RC-1: a site tool ("Program Finder") is not a named program or the best detail', () => {
+    const r = A('We prepare you for a meaningful career. Use our Program Finder to explore our 200+ undergraduate and graduate programs, including in-person, hybrid, and online options.');
+    expect(r.buriedLede?.detail).not.toBe('Program Finder');
+  });
+  it.fails('RC-2: "programs designed to ignite your ambition" is boilerplate, not a mechanism, and never a clause starting with "and"', () => {
+    const r = A('Our programs connect you with mentors who care. Explore over 150 undergraduate, graduate, and certificate programs designed to ignite your ambition.');
+    expect(r.buriedLede).toBeNull();
+  });
+  it.fails('RC-3: another organization named in a student profile ("a stint with the Peace Corps") is not your best detail', () => {
+    const r = A('Welcome to a university unlike any other. Profiles in excellence Sam Ortiz ’26 A double major who tutored peers, earned his department’s service award and played ultimate frisbee, he aims to work for the Foreign Service after a stint with the Peace Corps.');
+    expect(r.buriedLede?.detail).not.toBe('the Peace Corps');
+  });
+});

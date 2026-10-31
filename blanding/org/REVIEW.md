@@ -2,6 +2,79 @@
 
 Reviewer: R11 (Staff). Date: 2026-10-31. Everything below was run, not read, unless it is listed under "Not verified".
 
+# Sprint 2 FINAL gate on real copy (HEAD af9d27a)
+
+The bar (TL's call): a must-fix is something that is **embarrassing on realistic copy** a higher ed marketer would paste. Crafted one-liners go to Known limits, stay pinned as `it.fails`, and do not block.
+
+## Final verdicts
+
+| Lane | Verdict | Why |
+|------|---------|-----|
+| ENGINE | **NOT YET** | On 15 real schools' copy: 5 right, 3 defensible, 2 wrong, **5 embarrassing**. At least 3 of the 5 come from clean, verbatim sentences (not paste artifacts) and are on-screen in 5xl type. Three narrow fixes (RC-1 to RC-3). |
+| EXPERIENCE | **SHIP** | Renders all 15 real pastes with no errors or overflow. The Mirror, Buried Lede and Autopsy tags faithfully show engine output, and the earlier contradictions are gone. |
+| DATA | **SHIP** | Unchanged since verified. |
+| POSTER | **SHIP** | Unchanged. |
+
+Suite 191/191 (my 3 new real-copy `it.fails` included). MF-F2 (percentages) is fixed: the two pins were flipped and pass. Build clean.
+
+## Method
+
+- **Source:** T0 captured text, `reports/ring_full/packets/<domain>.json`. Only `first_150_words` per page exists; there is no full-page text in T0. A paste is the home page plus up to 2 about/academics/admissions pages (285 to 444 words), with cookie and video-alt sentences dropped.
+- **Line breaks:** T0 collapsed all whitespace, which a real browser paste would not. I restored line breaks around each page's captured h1/h2 headings ("text_nl" variant, used for the ratings). Nav labels that are not headings still run into body text, so some failures may be capture artifacts; I mark those.
+- **Sample:** 15 schools in the ring150 sample, spread across the T0 ranking: ranks 13, 32, 48, 66, 90, 110, 202, 328, 365, 395, 431, 448, 475, 506, 515. Community college, Christian, R1, liberal arts, health sciences, online-innovative.
+- **Test hygiene:** no school names appear in any committed test. The pinned sentences are verbatim but nameless, and the one student name is fictional.
+- **Ratings:** I read every `diagnosis.line`, `lead`, `buriedLede` and the Mirror heading as a skeptical marketer would.
+
+## Results (text_nl paste; school identities kept out of the repo, listed here by T0 rank only)
+
+| T0 rank | Type | Lead (Mirror) | Buried lede / line | Rating |
+|---------|------|---------------|--------------------|--------|
+| 13 | regional public | access (from an admissions-portal run-on) | none, hedged | Defensible |
+| 32 | career college | career ("Career-Ready Graduates" heading) | none, hedged | Right |
+| 48 | urban Catholic college | belonging, from an **Open House announcement** | "From a first-year seminar to your senior capstone" (generic). Misses the "guaranteed internship program" in the same paragraph | Wrong |
+| 66 | regional public | career ("real education for real people preparing for real careers") | "ranked #1 in Tennessee for return on investment", labeled "a thing that actually happens" (it is a ranking) | Defensible |
+| 90 | Christian university | **place**, from "at the heart of every decision" (cliché read as geography) | A state agency's "Veteran-Friendly School Program" from a news blurb, called "a named program" | Wrong |
+| 110 | R1 public | innovation ("leader in research, innovation and inclusion") | **"your best detail, the Peace Corps"**, from one student's future plans in a profile | **Embarrassing** (RC-3) |
+| 202 | work college | access ("fully funded education") | **"Work Program", "stuck in sentence 10 behind 'close-knit community'"** | **Right, and excellent** (`r11s2d-375-real-berea.png`) |
+| 328 | community college | prestige ("One of America's Top 10 Community Colleges") | "View Adult High School Programs Get" (button text run-on) | Embarrassing, *likely paste artifact* |
+| 365 | innovative online | rigor ("a new model of higher education") | "and act a Minerva... education builds Graduates ready to lead..." (flattened list) | Embarrassing, *likely paste artifact* |
+| 395 | liberal arts | prestige ("No. 1 for Undergraduate Teaching") | none, hedged | Right |
+| 431 | regional public | career | **"and certificate programs designed to ignite your ambition"**: a cliché crowned as "a thing that actually happens", clause starting with "and" | **Embarrassing** (RC-2, `r11s2d-375-real-suu.png`) |
+| 448 | liberal arts | your own path ("You design your distinct path") | none, hedged | Right |
+| 475 | small private | prestige ("Named The Best College in West Virginia") | none, hedged | Right |
+| 506 | health sciences | own path ("Countless Opportunities" heading) | "the only faith-based academic health sciences centers" (real, from stat tiles) | Defensible |
+| 515 | urban public | belonging (truncated heading) | **"your best detail, Program Finder"** from "Use our Program Finder to explore our 200+ programs" | **Embarrassing** (RC-1) |
+
+**Count: right 5, defensible 3, wrong 2, embarrassing 5 (3 with no artifact doubt).** The lead/Mirror theme was right or defensible in 13/15. The buried lede is where it breaks.
+
+## MUST-FIX (engine, real copy)
+
+1. **RC-1: site tools and nav labels are "named programs".** `Program` in `ORG` matches "Program Finder" and "View Adult High School Programs". Fix: reject named-program candidates whose run starts with a UI verb (View, Explore, Use, Find, Apply, Visit, Request, Learn) or contains a tool noun (Finder, Portal, Dashboard, Directory, Search, Catalog).
+2. **RC-2: boilerplate with a mechanism verb is crowned, and the clause cut leaves "and ...".** "programs designed to ignite your ambition" matches mechanism `designed`, and `needsDetail` is satisfied by "150". Fix: no mechanism lede from "designed to / built to / created to" purpose phrases, or from a clause that contains a cliché. When the clause starts with a conjunction, extend to the sentence.
+3. **RC-3: other organizations in a profile or news aside are "your best detail".** "after a stint with the Peace Corps" and "the Michigan Veterans Affairs Agency's ... Program" are crowned. Fix: skip named-program candidates preceded by "with the / for the / through the / at the" when the sentence's subject is a person (class-year marker like ’26), or when the program is possessed by another proper noun ("Agency's").
+
+All three are pinned by `it.fails` (RC-1/2/3) in `src/engine/insight.review.test.js`, using nameless verbatim text.
+
+## Known limits (do not block; pinned where useful)
+
+- Invented proper nouns read as specifics ("Zorblax Quinterfield", "Dr. Bob Smith"). They are capped at Twitching when clichés dominate and reach about 66 otherwise. An offline tool cannot fact-check names.
+- Negation is not understood ("We are not a world-class university" gets the cliché and a prestige lead).
+- Non-English copy finds no clichés and scores about 49.
+- `"123 things"`-style counts with vague nouns were fixed in sprint 2, but any number next to a real noun counts. Bland facts like "12 buildings" score as proof.
+- The theme classifier abstains on about a third of plain sentences (19/30 right, 1 wrong). It fails safe.
+- Clichés read as themes literally: "at the heart of" maps to *place* (seen on real copy, rank 90).
+- Event and portal lines can be picked as the lead ("Fall Open House...", "Your Personal Admissions Dashboard..."). Common in ctrl-A pastes. Suggest a "paste body copy, not the whole page" hint in the Intake.
+- Nav or button text that a paste flattens into one line still produces garbled ledes.
+- Embalmed is reachable only by junk. Real cliché soup floors at 31 (WAITING #6).
+- Corpus examples include a few recognizable slogans and context-dependent fragments (Tracey's skim).
+- Not verified: Safari/Firefox, the projector, offline, full-length pages (T0 only holds 150 words per page).
+
+## Screenshots
+
+`r11s2d-375-real-berea.png` (right: Work Program), `r11s2d-375-real-suu.png` (embarrassing: "and certificate programs designed to ignite your ambition" in 5xl). Both at 375, in the scratchpad.
+
+---
+
 # Sprint 2 engine-only confirm (HEAD 3aef714)
 
 **ENGINE: NOT YET** (one rule). The MF-F1 fix is correct and verified: "We pledge to help every student succeed" and "transfer agreements with many schools" no longer get a lede, and haunted/embalmed copy never hears "you opened with the proof". Suite 186/186. My file diff shows only the two MF-F1 flips. Mutants on the changed lines: **5/5 caught**:
