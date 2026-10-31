@@ -127,7 +127,8 @@ describe('buried lede', () => {
     const b = run('MIXED').buriedLede;
     expect(b.sentenceIndex).toBe(1);
     expect(b.detail).toContain('Competitive Pierogi Society');
-    expect(b.position).toBe('early');
+    expect(b.position).toBe('buried'); // honest positions: early means the first 15% of the page
+    expect(b.confidence).toBe('strong');
     expect(b.why).toContain('vibrant community');
   });
   it('SPECIFIC opens with its lede', () => {
@@ -372,6 +373,42 @@ describe('percentages measure populations, not feelings', () => {
   it('population and outcome percentages are proof', () => {
     for (const t of ['31 percent of graduates went on to law.', 'Our graduation rate of 88% leads the state.', '94 percent of the Class of 2025 employed.']) {
       expect(analyze(t).sentences[0].isProof, t).toBe(true);
+    }
+  });
+});
+
+describe('real-copy structure: ledes that say what happens', () => {
+  const N = { schoolName: 'Northfield University' };
+  const filler = (k) => Array.from({ length: k }, (_, i) => `Filler sentence number ${i + 1} is here.`).join(' ');
+  it('position is computed honestly: first sentence lead, first 15% early, else buried', () => {
+    const lede = 'Students row with the Kessler Rowing Club every dawn.';
+    const at = (i, n) => analyze(`${filler(i)} ${lede} ${filler(n - i - 1)}`.trim()).buriedLede;
+    expect(at(0, 30).position).toBe('lead');
+    expect(at(3, 30).position).toBe('early');
+    expect(at(9, 30).position).toBe('buried');
+    expect(at(9, 30).why).toMatch(/waits until sentence 10 of 30/);
+    expect(at(3, 30).why).toMatch(/shows up in sentence 4/);
+  });
+  it('site tools, purpose phrases, fragments and backstories are rejected', () => {
+    expect(analyze('Use our Program Finder to explore 200 programs. Come visit.').buriedLede).toBeNull();
+    expect(analyze('Browse the Course Catalog for 90 options. Come visit.').buriedLede).toBeNull();
+    expect(analyze('We offer 150 programs designed to ignite your ambition. Come visit.').buriedLede).toBeNull();
+    expect(analyze('Maya Chen ’25 interned with the Gates Foundation Fellowship before graduating. Come visit.').buriedLede).toBeNull();
+    expect(analyze('Students work at the Kessler Fellowship lab every summer. Come visit.').buriedLede).not.toBeNull();
+  });
+  it('confidence: student groups and verb-backed details are strong; a bare program name is tentative and hedged', () => {
+    expect(run('MIXED').buriedLede.confidence).toBe('strong');
+    expect(run('PROGRAM').buriedLede.confidence).toBe('strong');
+    const r = analyze('We prepare you for the future. The Kessler Institute is part of our campus.', N);
+    expect(r.buriedLede.confidence).toBe('tentative');
+    expect(r.diagnosis.line).toMatch(/your strongest candidate for a detail only you could write may be the Kessler Institute/);
+    expect(r.diagnosis.line).not.toMatch(/your best detail|you opened with the proof/);
+  });
+  it('only strong ledes are named as fact in the line', () => {
+    const texts = [...Object.values(F), 'The Kessler Institute is here. We care.', 'Students row with the Kessler Rowing Club. We care.'];
+    for (const t of texts) {
+      const r = analyze(t, N);
+      if (/your best detail|You open with/.test(r.diagnosis.line)) expect(r.buriedLede.confidence, t).toBe('strong');
     }
   });
 });

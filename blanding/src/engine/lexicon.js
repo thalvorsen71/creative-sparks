@@ -75,7 +75,7 @@ export const LEXICON = [
   'Show one before and one after. Name the student in both.', 3),
 
   entry('discover-your-passion', 'discover your passion', [
-    /\b(?:discover|find|follow|pursue|ignite|fuel|explore|uncover|turn) (?:your|their) (?:passions?|purpose|calling|curiosity)(?: into (?:a )?(?:career|purpose|profession))?\b/,
+    /\b(?:discover|find|follow|pursue|ignite|fuel|explore|uncover|turn|unleash) (?:your|their) (?:passions?|purpose|calling|curiosity|ambitions?|spark)(?: into (?:a )?(?:career|purpose|profession))?\b/,
   ], 'You do not know what you want. Same.',
   'Name the class where students most often switch majors, and what they switch to.', 3),
 

@@ -223,14 +223,15 @@ export function buildInsight(sentences) {
   let ledeScore = 0;
   per.forEach((p, i) => {
     if (p.detail < 2) return;
-    const s = p.detail + (sentences[i].cliches.length ? 0.5 : 0) + (i === 0 ? 0.3 : 0);
+    const s = p.detail + (sentences[i].cliches.length ? 0.5 : 0) + (i === 0 ? 0.3 : 0) + (p.details[0].strong ? 0.4 : 0);
     if (s > ledeScore) { ledeScore = s; ledeIdx = i; }
   });
   let buriedLede = null;
   if (ledeIdx !== null) {
     const s = sentences[ledeIdx];
     const best = per[ledeIdx].details[0];
-    const position = ledeIdx === 0 ? 'lead' : ledeIdx < n / 3 ? 'early' : 'buried';
+    // Honest position: sentence 1 is the lead; the first 15% of the page is early; the rest is buried.
+    const position = ledeIdx === 0 ? 'lead' : ledeIdx < Math.ceil(n * 0.15) ? 'early' : 'buried';
     const wrap = s.cliches[0] ? s.cliches[0].match : null;
     const before = sentences.slice(0, ledeIdx).filter((x) => x.swappable).length;
     const where = position === 'lead'
@@ -239,7 +240,9 @@ export function buildInsight(sentences) {
         ? `It shows up in sentence ${ledeIdx + 1}. Move it to sentence 1.`
         : `It waits until sentence ${ledeIdx + 1} of ${n}${before ? `, behind ${before} ${before === 1 ? 'sentence' : 'sentences'} any school could sign` : ''}.`;
     const what = `It is ${KIND_PHRASE[best.kind]}${wrap ? `, wrapped in “${wrap}”` : ''}.`;
-    buriedLede = { sentenceIndex: ledeIdx, text: s.text, detail: best.detail, kind: best.kind, position, why: `${what} ${where}` };
+    const confidence = best.strong ? 'strong' : 'tentative';
+    const whatT = confidence === 'strong' ? what : `It might be ${KIND_PHRASE[best.kind]}, but the sentence does not say what happens there.`;
+    buriedLede = { sentenceIndex: ledeIdx, text: s.text, detail: best.detail, kind: best.kind, position, confidence, why: `${whatT} ${where}` };
   }
 
   return { themes, lead, promises, buriedLede, line: diagnosisLine({ sentences, lead, buriedLede }) };
@@ -272,6 +275,13 @@ export function diagnosisLine({ sentences, lead, buriedLede, bandId = null }) {
     const d = named ? buriedLede.detail : `“${buriedLede.detail}”`;
     const s = sentences[buriedLede.sentenceIndex];
     const wrap = s.cliches[0] ? s.cliches[0].match : null;
+    // Only a strong lede gets named as fact. A tentative one is offered as a candidate.
+    if (buriedLede.confidence === 'tentative') {
+      const where = buriedLede.position === 'lead' ? 'in your first sentence' : `in sentence ${k}`;
+      return leadClause
+        ? `${leadClause}, and your strongest candidate for a detail only you could write may be ${d}, ${where}.`
+        : `Your strongest candidate for a detail only you could write may be ${d}, ${where}.`;
+    }
     if (buriedLede.position === 'lead' && (bandId === 'embalmed' || bandId === 'haunted')) {
       return `You open with ${d}, and then the page buries it under copy any school could sign.`;
     }
