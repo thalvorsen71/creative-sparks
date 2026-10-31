@@ -26,7 +26,7 @@ export default function Autopsy({ report }) {
       </SectionHead>
       {restated?.share > 0 && (
         <p className="-mt-2 mb-6 border-l-4 border-blood pl-4 text-sm">
-          Across the schools we read, {Math.round(restated.share * 100)}% of promises are backed only by a restatement of the promise.
+          Across the schools we read, about 1 in {Math.round(1 / restated.share)} pieces of 'evidence' just restated the claim.
         </p>
       )}
       <ol className="grid gap-5">

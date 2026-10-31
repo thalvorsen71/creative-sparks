@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { analyze } from './engine/index.js';
-import { GENERIC, SPECIFIC } from './engine/fixtures.js';
+import { GENERIC, SPECIFIC, MIXED } from './engine/fixtures.js';
 import PosterCard from './poster/PosterCard.jsx';
 import Masthead from './components/Masthead.jsx';
 import Intake from './components/Intake.jsx';
@@ -18,6 +18,7 @@ import { Reveal, SectionHead } from './components/ui.jsx';
 
 const SAMPLES = {
   generic: { name: 'Northfield University', text: GENERIC },
+  mixed: { name: 'Brookline State', text: MIXED },
   specific: { name: 'Harrow College', text: SPECIFIC },
 };
 

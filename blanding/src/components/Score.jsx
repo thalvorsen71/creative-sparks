@@ -23,7 +23,7 @@ export default function Score({ report }) {
         <div className="mt-2 flex justify-between font-mono text-[11px] uppercase tracking-widest text-smoke">
           <span>{BAND_LABELS[0]}</span><span>{BAND_LABELS[4]}</span>
         </div>
-        <p className="mt-3 text-sm text-smoke">Median across 300+ audited institutions: about 50.</p>
+        <p className="mt-3 text-sm text-smoke">A light diagnostic. The score is the least interesting thing on this page.</p>
         <p className="mt-1 font-mono text-[11px] uppercase tracking-widest text-smoke">
           {stats.words} words / {stats.sentences} sentences / {stats.clicheHits} cliché hits
         </p>

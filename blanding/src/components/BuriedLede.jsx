@@ -31,7 +31,7 @@ export default function BuriedLede({ report }) {
       )}
       {loc?.total > 0 && (
         <p className="mt-8 border-l-4 border-blood pl-4 text-lg">
-          Of {loc.total} details only one school could say, <span className="font-semibold">{loc.homepage}</span> were on a homepage.
+          Of {loc.total} concrete details our readers found across {corpus?.meta?.schools} schools, <span className="font-semibold">{loc.homepage}</span> were on a homepage. The rest were one or two clicks down.
         </p>
       )}
     </div>

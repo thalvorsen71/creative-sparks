@@ -74,6 +74,10 @@ export default function Intake({ schoolName, setSchoolName, text, setText, rival
             className={`rounded-none border border-ink px-4 py-3 font-mono text-xs uppercase tracking-widest hover:bg-ink hover:text-paper ${focusRing}`}>
             Try a good one
           </button>
+          <button type="button" onClick={() => onSample('mixed')}
+            className={`rounded-none border border-ink px-4 py-3 font-mono text-xs uppercase tracking-widest hover:bg-ink hover:text-paper ${focusRing}`}>
+            Try a mixed one
+          </button>
         </div>
         <p className="font-mono text-[11px] uppercase tracking-widest text-smoke">Cmd or Ctrl + Enter also runs it.</p>
       </div>
