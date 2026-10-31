@@ -36,7 +36,7 @@ export function stripHtml(text) {
 }
 
 // List markers at the start of a line: bullets, dashes, asterisks, "1." "2)" "a.".
-const LIST_MARKER = /^\s*(?:[\u2022\u00b7\u25aa\u25ab\u2023\u25e6\u25cf\u25cb\u25a0\u25a1\u2043*>\u2013\u2014-]+|\d{1,2}[.)]|[a-zA-Z][.)])\s+/u;
+const LIST_MARKER = /^\s*(?:[\u2022\u00b7\u25aa\u25ab\u2023\u25e6\u25cf\u25cb\u25a0\u25a1\u2043*>\u2013\u2014-]+|\d{1,2}[.)]|[a-z][.)]|[A-Z]\))\s+/u; // "A. Smith" is a name, not a list item
 
 // Split into sentences. Newlines and bullet glyphs always break (headlines and list items rarely end in periods).
 export function splitSentences(text) {

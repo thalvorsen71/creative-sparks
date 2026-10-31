@@ -66,6 +66,10 @@ whiteboard chalkboard notebook notebooks clipboard wetsuit waders shovel shovels
 const CAP_RUN = /[\p{Lu}][\p{L}\p{N}'’.&-]*(?:\s+(?:of|the|for|de|du|da|del|la|le|von|van)\s+[\p{Lu}][\p{L}\p{N}'’.&-]*|\s+[\p{Lu}][\p{L}\p{N}'’.&-]*)*/gu;
 
 const NUM_FILLER = new Set('and or to the a an of in on at is are was were by for from with as than'.split(' '));
+// Counted nouns that count nothing. "123 things" is not a fact.
+export const VAGUE_NOUNS = new Set(`things thing others other more ways reasons items stuff options opportunities possibilities
+choices types kinds sorts areas aspects elements pieces parts lots plus times ideas experiences resources benefits
+features moments stories adventures memories offerings solutions`.split(/\s+/).filter(Boolean));
 
 // How much a number is worth, given its neighbors.
 //   1    attached: "14 students", "90-minute exam", "31 percent", "$18,450", "since 1937", "Class of 2025", "size: 17"
@@ -76,7 +80,8 @@ export function numberWeight(tok, before, after) {
   if (/^\$|%|percent|million|billion/i.test(tok)) return 1;
   if (/\b(?:since|founded in|established in|chartered in|opened in|class of|est\.?|no\.?|number|ranked)\s*$/i.test(before) || /#\s*$/.test(before)) return 1;
   if (/[a-z]\s*:\s*$/i.test(before)) return 1;
-  const next = (after.match(/^-?\s?([a-z][\w'\u2019-]*)/) || [])[1];
+  const next = (after.match(/^-?\s?([a-z][\w'\u2019-]*)/i) || [])[1];
+  if (next && VAGUE_NOUNS.has(next.toLowerCase())) return 0.2;
   const isYear = /^(?:1[6-9]|20)\d\d$/.test(tok);
   if (next && !NUM_FILLER.has(next.toLowerCase()) && !isYear) return 1;
   if (isYear) return 0.4;

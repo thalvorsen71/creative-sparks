@@ -4,6 +4,7 @@ import { splitSentences, words as wordList, nameRegex, hasContent, stripHtml } f
 import { findCliches, findSpecifics, isPromise } from './detect.js';
 import { diagnose } from './titles.js';
 import { compareRival } from './rivals.js';
+import { buildInsight, diagnosisLine } from './insight.js';
 import { checkDistinction } from './distinction.js';
 
 export { LEXICON, checkDistinction };
@@ -53,7 +54,12 @@ function emptyReport(text, opts) {
     logoSwap: { swapName: SWAP_NAME, swappedText: String(text || '').trim(), survivors: [], total: 0 },
     promiseProof: { promises: 0, proofs: 0, orphans: [] },
     rivals: [],
-    diagnosis: { title: 'The Blank Page', tagline: 'In an empty text box, no one can hear you scream.' },
+    themes: [],
+    lead: { themeId: null, label: null, sentenceIndex: null, quote: null, confidence: 'none', corpusShare: null, examples: [] },
+    promises: [],
+    buriedLede: null,
+    diagnosis: { title: 'The Blank Page', tagline: 'In an empty text box, no one can hear you scream.',
+      line: diagnosisLine({ sentences: [], lead: {}, buriedLede: null }) },
   };
 }
 
@@ -157,6 +163,8 @@ function core(text, opts) {
   const band = bandFor(score);
   const swappedText = nameRe ? clean.replace(nameRe, SWAP_NAME) : clean;
 
+  const insight = buildInsight(sentences);
+
   return {
     score,
     band,
@@ -172,7 +180,11 @@ function core(text, opts) {
     logoSwap: { swapName: SWAP_NAME, swappedText, survivors, total: n },
     promiseProof: { promises, proofs, orphans },
     rivals: [],
-    diagnosis: diagnose(band.id, dominantCliche(cliches), String(wordCount)),
+    themes: insight.themes,
+    lead: insight.lead,
+    promises: insight.promises,
+    buriedLede: insight.buriedLede,
+    diagnosis: { ...diagnose(band.id, dominantCliche(cliches), String(wordCount)), line: insight.line },
   };
 }
 

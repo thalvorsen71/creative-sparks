@@ -143,14 +143,14 @@ describe('R11 re-gate mutation kills', () => {
 });
 
 // Re-gate (round 2): remaining limits. it.fails = documents current behavior; flip to it() when fixed.
-describe('R11 re-gate known limits (it.fails until fixed)', () => {
-  it.fails('SHOULD-FIX: vague counted nouns ("123 things") still score Unmistakable', () => {
+describe('R11 re-gate known limits (fixed sprint 2, flipped from it.fails)', () => {
+  it('FIXED: vague counted nouns ("123 things") still score Unmistakable', () => {
     expect(analyze('We have 123 things and 456 others and 789 more.').score).toBeLessThan(65);
   });
-  it.fails('SHOULD-FIX: a capital-letter initial is eaten as a list marker ("A. Smith" shows as "Smith")', () => {
+  it('FIXED: a capital-letter initial is eaten as a list marker ("A. Smith" shows as "Smith")', () => {
     expect(analyze('A. Smith founded the college in 1891.').sentences[0].text).toBe('A. Smith founded the college in 1891.');
   });
-  it.fails('SHOULD-FIX: ALL CAPS proof loses number credit ("112 BOOKS" is not attached)', () => {
+  it('FIXED: ALL CAPS proof loses number credit ("112 BOOKS" is not attached)', () => {
     expect(analyze('EVERY STUDENT READS 112 BOOKS.').sentences[0].isProof).toBe(true);
   });
 });
