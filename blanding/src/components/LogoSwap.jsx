@@ -7,11 +7,12 @@ export default function LogoSwap({ report, schoolName }) {
   const [on, setOn] = useState(true);
   const { swapName, survivors, total } = report.logoSwap;
   const alive = new Set(survivors);
-  const name = schoolName.trim();
-  const re = name ? new RegExp(`(${esc(name)})`, 'gi') : null;
+  const re = swapName ? new RegExp(`(${esc(swapName)})`, 'g') : null;
 
-  const render = (text) => {
-    if (!on || !re) return text;
+  const render = (sent) => {
+    if (!on) return sent.text;
+    const text = sent.swapped ?? sent.text;
+    if (!re) return text;
     return text.split(re).map((part, i) =>
       i % 2 === 1 ? (
         <mark key={i} className="mx-0.5 inline-block -rotate-1 border-2 border-blood bg-paper px-1.5 font-mono text-sm font-semibold uppercase tracking-wide text-blood">
@@ -45,7 +46,7 @@ export default function LogoSwap({ report, schoolName }) {
           const grey = on && alive.has(s.i);
           return (
             <li key={s.i} className="grid gap-1 sm:grid-cols-[1fr,10rem] sm:gap-6">
-              <p className={`text-lg leading-relaxed ${grey ? 'text-smoke/60' : ''}`}>{render(s.text)}</p>
+              <p className={`text-lg leading-relaxed ${grey ? 'text-smoke/60' : ''}`}>{render(s)}</p>
               {grey && <p className="font-mono text-[11px] uppercase tracking-widest text-blood sm:pt-2">Could be anyone's.</p>}
             </li>
           );

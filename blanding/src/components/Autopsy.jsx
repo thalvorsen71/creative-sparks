@@ -45,7 +45,7 @@ export default function Autopsy({ report }) {
                     p.c ? (
                       <button key={k} type="button" aria-expanded={open === key(p.c)}
                         onClick={() => setOpen(open === key(p.c) ? null : key(p.c))}
-                        className={`rounded-none border-b-2 border-blood bg-blood/15 px-0.5 text-left font-medium hover:bg-blood/30 ${focusRing} ${open === key(p.c) ? 'bg-blood text-paper hover:bg-blood' : ''}`}>
+                        className={`rounded-none border-b-2 border-blood px-0.5 text-left font-medium ${focusRing} ${open === key(p.c) ? 'bg-blood text-paper' : 'bg-blood/15 hover:bg-blood/30'}`}>
                         {p.t}
                       </button>
                     ) : (
