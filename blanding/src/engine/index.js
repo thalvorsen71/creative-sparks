@@ -185,7 +185,7 @@ function core(text, opts) {
     lead: insight.lead,
     promises: insight.promises,
     buriedLede: insight.buriedLede,
-    diagnosis: { ...diagnose(band.id, dominantCliche(cliches), String(wordCount)), line: insight.line },
+    diagnosis: { ...diagnose(band.id, dominantCliche(cliches), String(wordCount)), line: diagnosisLine({ sentences, lead: insight.lead, buriedLede: insight.buriedLede, bandId: band.id }) },
   };
 }
 

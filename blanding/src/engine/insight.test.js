@@ -285,7 +285,7 @@ describe('R11 sprint 2 fixes: modest right beats confident wrong', () => {
     expect(r.diagnosis.line).toMatch(/^You open with/);
   });
   it('STATS still gets "All receipts", hedged', () => {
-    expect(run('STATS').diagnosis.line).toMatch(/^All receipts, no story: .*we could not find one that says how anything here works\.$/);
+    expect(run('STATS').diagnosis.line).toMatch(/^All receipts, no story: .*so add one sentence about how something here actually works\.$/);
   });
 });
 
@@ -311,5 +311,31 @@ describe('one source of truth: orphans and proofKind', () => {
       }
       for (const o of orphanSet) expect(r.promises.some((p) => p.sentenceIndex === o)).toBe(true);
     }
+  });
+});
+
+describe('the line agrees with the score', () => {
+  const ADV = [
+    'Northfield Promise covers tuition for 1,200 Ohio families. 98 percent of them graduate. Since 2015, 6,400 students have used it.',
+    'Start here, finish anywhere. Credits transfer to all 14 state universities through our guaranteed transfer agreement. Classes cost $142 per credit hour.',
+    'Every first-year spends a week at the Kessler Farm, and the dining hall serves what they grow. We prepare you for the future.',
+    'If your family earns under $80,000 a year, you pay no tuition. That has been true since 2019, and 1,140 students used it this fall.',
+    'Smith Hall, Jones Center and the Brown Quad are at the heart of campus. Our students thrive here.',
+    'Our world-class faculty of 400 prepare you for the future. 98% of our vibrant community of 12,000 thrives.',
+    'Dr. Lena Ortiz teaches Chemistry 101 in Room 204. She has done so since 1998. U.S. News ranked the program No. 12 in 2025.',
+    'We offer great programs for 300 students. We have 12 buildings. There are 5 dining halls.',
+    'At Northfield, you will thrive. Nursing students start clinical rotations in their first semester instead of their third.',
+  ];
+  it('"could not find" never appears with a strong band or zero logo-swap survivors', () => {
+    const reports = [...Object.keys(NAMES).map(run), ...ADV.map((t) => analyze(t, { schoolName: 'Northfield University' }))];
+    for (const r of reports) {
+      if (!/could not find/i.test(r.diagnosis.line)) continue;
+      expect(['breathing', 'unmistakable'], r.diagnosis.line).not.toContain(r.band.id);
+      expect(r.logoSwap.survivors.length, r.diagnosis.line).toBeGreaterThan(0);
+    }
+  });
+  it('should-fixes: a guaranteed transfer is a policy lede; a dining hall does not veto the farm', () => {
+    expect(analyze(ADV[1]).buriedLede).toMatchObject({ kind: 'policy' });
+    expect(analyze(ADV[2]).buriedLede).not.toBeNull();
   });
 });

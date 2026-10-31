@@ -33,7 +33,7 @@ const PATTERNS = [
   { kind: 'structure', w: 2.5, re: /\b(?:oral exams?|senior thesis|thesis|capstone|tutorials?|great books|co-?op (?:rotation|semester|program)|residential college|cohorts? of \d+)\b/i },
   { kind: 'structure', w: 2.75, re: /\b(?:clinical rotations?|(?:in|during) their first (?:semester|year|week|month)|instead of (?:in )?their (?:second|third|fourth|senior|junior)|within \d+ (?:hours|days)|on day one)\b/i },
   // policy: published terms anyone can check
-  { kind: 'policy', w: 3, re: /\b(?:pay(?:s)? no tuition|tuition-free|free tuition|no-loan|meets? (?:full|100 percent of|100% of) (?:demonstrated )?need|we cover (?:full )?tuition|guarantee(?:s|d)? (?:admission|a spot|housing|an internship|aid))\b/i },
+  { kind: 'policy', w: 3, re: /\b(?:pay(?:s)? no tuition|tuition-free|free tuition|no-loan|meets? (?:full|100 percent of|100% of) (?:demonstrated )?need|we cover (?:full )?tuition|covers? (?:full )?tuition|guaranteed (?:transfer|admission)|transfer agreements?|pledge|guarantee(?:s|d)? (?:admission|a spot|housing|an internship|aid))\b/i },
   // ritual: something that happens on a schedule, with a start date
   { kind: 'ritual', w: 2.75, re: /\b(?:every (?:week|year|night|morning|spring|fall|semester|monday|tuesday|wednesday|thursday|friday|saturday|sunday)|each (?:week|year|spring|fall))\b[^.!?]{0,60}\bsince \d{4}\b|\bsince \d{4}\b[^.!?]{0,60}\bevery (?:week|year|night)\b|\bhas run every\b/i },
   // mechanism: a concrete thing that actually happens
@@ -49,7 +49,7 @@ function wholeSentence(text) {
 }
 
 function clauseAround(text, start, end) {
-  const seps = /[,;:()]|\s[–—]\s/g;
+  const seps = /,(?!\d{3})|[;:()]|\s[–—]\s/g;
   let a = 0;
   let b = text.length;
   let m;
@@ -94,7 +94,6 @@ export function findDetails(text, spec = { tokens: [], weight: 0, strong: 0, con
   const out = [];
   const hasDetail = spec.weight >= 0.5 || spec.concrete > 0;
   // Coffee, parking and paperwork: real, checkable, and not why anyone enrolls.
-  if (TRIVIA.test(t)) return [];
   const active = ACTIVITY.test(t);
 
   for (const tok of spec.tokens || []) {
@@ -111,6 +110,10 @@ export function findDetails(text, spec = { tokens: [], weight: 0, strong: 0, con
     if (m) out.push({ kind: p.kind, w: p.w, start: m.index, detail: clauseAround(t, m.index, m.index + m[0].length) });
   }
   out.push(...firstCandidates(t));
+  // Coffee, parking and paperwork: drop the details that are about them, not the whole sentence
+  // ("the dining hall serves what they grow" must not veto the Kessler Farm).
+  const kept = out.filter((c) => !TRIVIA.test(c.detail));
+  out.length = 0; out.push(...kept);
   out.sort((a, b) => b.w - a.w || a.start - b.start);
   return out;
 }

@@ -141,12 +141,12 @@ describe('R11 sprint 2 re-gate mutation kills', () => {
 });
 
 describe('R11 sprint 2 re-gate projector bugs (it.fails until fixed)', () => {
-  it.fails('MF-R1: "could not find a detail only you could write: 0 of 3 sentences would survive" contradicts itself (scores 93)', () => {
+  it('MF-R1: "could not find a detail only you could write: 0 of 3 sentences would survive" contradicts itself (scores 93)', () => {
     const r = A('Northfield Promise covers tuition for 1,200 Ohio families. 98 percent of them graduate. Since 2015, 6,400 students have used it.');
     expect(r.score).toBeGreaterThanOrEqual(80);
     expect(r.diagnosis.line).not.toMatch(/: 0 of \d+ sentences would survive/);
   });
-  it.fails('SF-R2: the trivia filter vetoes a whole sentence ("dining hall" kills the Kessler Farm)', () => {
+  it('SF-R2: the trivia filter vetoes a whole sentence ("dining hall" kills the Kessler Farm)', () => {
     const r = A('Every first-year spends a week at the Kessler Farm, and the dining hall serves what they grow. We prepare you for the future.');
     expect(r.buriedLede).not.toBeNull();
   });

@@ -243,10 +243,11 @@ export function buildInsight(sentences) {
   }
 
   return { themes, lead, promises, buriedLede, line: diagnosisLine({ sentences, lead, buriedLede }) };
+  // index.js recomputes line with the band once the score exists.
 }
 
 // ---------- the one line ----------
-export function diagnosisLine({ sentences, lead, buriedLede }) {
+export function diagnosisLine({ sentences, lead, buriedLede, bandId = null }) {
   const n = sentences.length;
   if (!n) return 'Paste some copy. We will wait.';
   const survivors = sentences.filter((s) => s.swappable).length;
@@ -290,7 +291,15 @@ export function diagnosisLine({ sentences, lead, buriedLede }) {
   // Only when no sentence describes a mechanism or a policy. Otherwise this would scold good copy.
   const describesHow = sentences.some((x) => POLICY.test(x.text) || findDetails(x.text, x._spec).some((d) => d.w >= 2));
   if (proofs >= Math.ceil(n * 0.6) && survivors === 0 && !describesHow) {
-    return `All receipts, no story: ${proofs === n ? 'every line' : `${proofs} of ${n} lines`} is a number or a name, and we could not find one that says how anything here works.`;
+    return `All receipts, no story: ${proofs === n ? 'every line' : `${proofs} of ${n} lines`} is a number or a name, so add one sentence about how something here actually works.`;
+  }
+  // Never hedge "could not find" on copy that passed the logo swap or scored well. That contradicts the score.
+  const strongBand = bandId === 'breathing' || bandId === 'unmistakable';
+  if (survivors === 0) {
+    return 'Nothing here would survive a logo swap, so whatever you are doing, keep doing it.';
+  }
+  if (strongBand) {
+    return `${n - survivors} of ${n} sentences are yours and the detail is spread thin, so pick the best one and put it first.`;
   }
   if (survivors === n) {
     return leadClause
