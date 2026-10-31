@@ -3,7 +3,7 @@ export default function Masthead() {
     <header className="pt-10 pb-8 sm:pt-16">
       <div className="flex items-start justify-between font-mono text-[11px] uppercase tracking-[0.18em] text-smoke">
         <span>Copy forensics, vol. 3</span>
-        <span>by adeo</span>
+        <span className="normal-case tracking-normal">by adeo</span>
       </div>
       <h1 className="mt-6 flex items-start font-display text-[4.25rem] leading-[0.85] tracking-tight sm:text-[9rem]">
         Blanding
