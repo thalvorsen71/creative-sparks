@@ -13,8 +13,8 @@ export default function BuriedLede({ report }) {
 
   return (
     <div>
-      <SectionHead kicker="The Buried Lede" title={b ? 'The one thing only you could say' : 'Nothing only you could say.'}>
-        {b ? null : 'We looked for something only you could say. We did not find it on this page.'}
+      <SectionHead kicker="The Buried Lede" title={b ? 'The one thing only you could say' : 'We could not find something only you could say.'}>
+        {b ? null : `We looked for something only you could say. We did not find it on this page.${['breathing', 'unmistakable'].includes(report.band?.id) ? ' Your detail may be everywhere, which is also an answer.' : ''}`}
       </SectionHead>
       {b && (
         <div className="grid gap-6 md:grid-cols-[1fr,16rem]">
