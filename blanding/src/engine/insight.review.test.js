@@ -1,0 +1,195 @@
+// R11 sprint 2 review tests for the insight layer (insight.js, details.js).
+// "mutation kills" each fail against a planted mutant (org/REVIEW.md, Sprint 2 mutation table) and pass on the original.
+// "projector bugs" use it.fails: they assert the right behavior and fail today. Flip to it() when fixed.
+import { describe, it, expect } from 'vitest';
+import { analyze } from './index.js';
+
+const N = { schoolName: 'Northfield University' };
+const A = (t) => analyze(t, N);
+const lede = (r) => r.buriedLede && [r.buriedLede.sentenceIndex, r.buriedLede.kind, r.buriedLede.position, r.buriedLede.detail];
+
+describe('R11 sprint 2 mutation kills', () => {
+  it('I01: a one-keyword theme is a weak lead, not a clear one', () => {
+    const r = A('You will love our research.');
+    expect(r.lead.label).not.toBeNull();
+    expect(r.lead.confidence).toBe('weak');
+  });
+  it('I02: sentence 3 of 6 is buried, not early (first third means index < n/3)', () => {
+    const r = A('We are glad you are here. Come visit. Students join the Kessler Rowing Club. Apply today. Our campus is lovely. Call us.');
+    expect(lede(r)).toEqual([2, 'named program', 'buried', 'the Kessler Rowing Club']);
+  });
+  it('I04: a real detail wrapped in a cliche beats an equal unwrapped one', () => {
+    const r = A('Welcome to campus. Students work at the Kessler Rowing Club. Our vibrant community includes the Pierogi Society.');
+    expect(lede(r)).toEqual([2, 'named program', 'buried', 'the Pierogi Society']);
+  });
+  it('I05: equal details, the earlier sentence wins', () => {
+    const r = A('Welcome to campus. Students row with the Kessler Rowing Club. Students sing in the Northfield Chamber Choir.');
+    expect(r.buriedLede.sentenceIndex).toBe(1);
+  });
+  it('I06: a ranking outranks an outcome in the same sentence', () => {
+    const r = A('You will join a school ranked No. 1 by U.S. News, where 94 percent of graduates are employed.');
+    expect(r.promises.map((p) => p.proofKind)).toEqual(['third_party_recognition']);
+  });
+  it('I08: a promise on a different theme is not a restatement', () => {
+    const r = A('We offer generous scholarships for every family. You will find a welcoming community here.');
+    expect(r.promises.map((p) => p.proofKind)).toEqual(['none', 'none']);
+  });
+  it('I09: corpus examples rotate with the lead sentence, not always the same three', () => {
+    const firsts = new Set(['We prepare you for the future.', 'Our graduates get great jobs and you will too.', 'You will be career-ready.']
+      .map((t) => A(t).lead.examples[0]));
+    expect(firsts.size).toBeGreaterThan(1);
+  });
+  it('I10: corpus shares round, not floor (20.7% reads as 21%, 12.7% as 13%)', () => {
+    expect(A('We make a difference in the world. Come visit.').diagnosis.line).toContain('like 21% of the schools');
+    expect(A('Our faith shapes everything we do, and you will grow in it. Come visit.').diagnosis.line).toContain('like 13% of the schools');
+  });
+  it('I11: "All receipts" needs zero logo-swap survivors', () => {
+    expect(A('Founded in 1891. 4,112 undergraduates from 49 states. Come visit us soon.').diagnosis.line).not.toMatch(/^All receipts/);
+  });
+  it('I12: "behind N sentences any school could sign" counts only swappable ones', () => {
+    const r = A('We enroll 4,112 undergraduates. Our faculty care about you. Our campus is lovely. Students row with the Kessler Rowing Club.');
+    expect(r.buriedLede.why).toContain('behind 2 sentences any school could sign');
+  });
+  it('I13: a first reads inline in the line, unquoted', () => {
+    const r = A('We prepare you for the future. We have the only collegiate falconry team in Ohio.');
+    expect(r.diagnosis.line).toContain('your best detail, the only collegiate falconry team, waits');
+  });
+  it('D03: "must" with no concrete detail is not a requirement lede', () => {
+    expect(A('We are a caring school. Students must be kind to each other.').buriedLede).toBeNull();
+  });
+  it('D04: a lede clause is cut at 16 words', () => {
+    const r = A('We care. Every student completes a long and winding and genuinely difficult senior research project that takes the whole year to finish and then some more.');
+    expect(r.buriedLede.detail.endsWith('...')).toBe(true);
+    expect(r.buriedLede.detail.split(/\s+/).length).toBe(16);
+  });
+  it('D05: a sentence with two kinds of detail beats one with one kind', () => {
+    const r = A('Welcome to campus. Students row with the Kessler Rowing Club. Students sail with the Harbor Sailing Club on Delaware Bay.');
+    expect(r.buriedLede.sentenceIndex).toBe(2);
+  });
+  it('D06 + D07: the named program keeps its "the", and the first of two equal ones wins', () => {
+    expect(A('Welcome. Students join the Rowing Club and the Chess Society.').buriedLede.detail).toBe('the Rowing Club');
+    expect(analyze(require_mixed(), { schoolName: 'Brookline State' }).buriedLede.detail).toBe('the Competitive Pierogi Society');
+  });
+  it('D09: a named program outranks a bare place', () => {
+    const r = A('We are here. Students sail on Delaware Bay. Students join the Kessler Rowing Club.');
+    expect(r.buriedLede.sentenceIndex).toBe(2);
+  });
+});
+
+function require_mixed() {
+  return 'At Brookline State, we prepare you for the future. Our vibrant community includes 214 student clubs, from the Competitive Pierogi Society to a 40-member bagpipe band. Our world-class faculty are passionate about teaching.';
+}
+
+// Live defects that would put something false on a projector. See REVIEW.md Sprint 2 MUST-FIX.
+describe('R11 sprint 2 projector bugs (fixed, flipped from it.fails)', () => {
+  it('FIXED MF-S1: a building is not "a named program" and not the best detail', () => {
+    const r = A('Smith Hall, Jones Center and the Brown Quad are at the heart of campus. Our students thrive here.');
+    expect(r.buriedLede).toBeNull();
+  });
+  it('FIXED MF-S1: a rec center behind a cliche is not the buried lede', () => {
+    const r = A('Welcome home. Our vibrant community includes a Starbucks, a Chick-fil-A and the Student Recreation Center. You will find your place here.');
+    expect(r.buriedLede).toBeNull();
+  });
+  it('FIXED MF-S2: a registration deadline is not "a requirement, something every student actually does" or proof', () => {
+    const r = A('Students must register for classes by August 1. We are a vibrant community.');
+    expect(r.diagnosis.line).not.toMatch(/you opened with the proof/);
+  });
+  it('FIXED MF-S2: a bookstore sale is not a ritual, and the detail is not a dangling clause', () => {
+    const r = A('Every year since 1985, the bookstore has held a sale in May. We prepare you for the future.');
+    expect(r.buriedLede?.detail).not.toBe('Every year since 1985');
+  });
+  it('FIXED MF-S3: a published no-tuition policy is not told it "says how nothing works"', () => {
+    const r = A('If your family earns under $80,000 a year, you pay no tuition. That has been true since 2019, and 1,140 students used it this fall.');
+    // Tightened at re-gate: the old regex went vacuous when the wording changed. Assert the substance.
+    expect(r.diagnosis.line).not.toMatch(/^All receipts/);
+    expect(r.buriedLede && r.buriedLede.kind).toBe('policy');
+  });
+  it('FIXED MF-S3: a no-tuition policy that 1,140 students used has a buried lede (it scores 90 and the page says "Nothing only you could say")', () => {
+    const r = A('If your family earns under $80,000 a year, you pay no tuition. That has been true since 2019, and 1,140 students used it this fall.');
+    expect(r.score).toBeGreaterThanOrEqual(80);
+    expect(r.buriedLede).not.toBeNull();
+  });
+  it('FIXED MF-S4: when the detector finds nothing, the line hedges instead of asserting there is nothing', () => {
+    const r = A('At Northfield, you will thrive. Nursing students start clinical rotations in their first semester instead of their third. Faculty grade every lab report within 48 hours. We are proud of our graduates.');
+    // Tightened at re-gate (also kills R07): the mechanism is now found, not just hedged.
+    expect(r.diagnosis.line).not.toMatch(/^There is no detail here only you could write/);
+    expect(r.buriedLede && r.buriedLede.kind).toBe('structure');
+  });
+});
+
+// Sprint 2 re-gate: kills for mutants on the fix commit (8cb269f, fa5b540).
+describe('R11 sprint 2 re-gate mutation kills', () => {
+  it('D03: a mechanism verb with no concrete detail is not a lede', () => {
+    expect(A('We test ideas here.').buriedLede).toBeNull();
+  });
+  it('R03: a map place with nothing happening there is not a lede', () => {
+    expect(A('We are glad you came. Our campus overlooks Delaware Bay.').buriedLede).toBeNull();
+  });
+  it('R04: "must" alone stays below the lede threshold', () => {
+    expect(A('We are glad you came. Students must complete 40 hours of community service.').buriedLede).toBeNull();
+  });
+  it('R15: a proof-first opening with a later generic line is still proof_first', () => {
+    expect(A('Founded in 1891. Come see us soon.').lead.reason).toBe('proof_first');
+  });
+  it('R16: a named Fund is a named program', () => {
+    expect(A('Welcome to campus. Students apply to the Kessler Fund for summer research.').buriedLede.detail).toBe('the Kessler Fund');
+  });
+  it('R10: copy that describes a policy is never "All receipts, no story"', () => {
+    const r = A('Northfield Promise covers tuition for 1,200 Ohio families. 98 percent of them graduate. Since 2015, 6,400 students have used it.');
+    expect(r.diagnosis.line).not.toMatch(/^All receipts/);
+  });
+});
+
+describe('R11 sprint 2 re-gate projector bugs (it.fails until fixed)', () => {
+  it('MF-R1: "could not find a detail only you could write: 0 of 3 sentences would survive" contradicts itself (scores 93)', () => {
+    const r = A('Northfield Promise covers tuition for 1,200 Ohio families. 98 percent of them graduate. Since 2015, 6,400 students have used it.');
+    expect(r.score).toBeGreaterThanOrEqual(80);
+    expect(r.diagnosis.line).not.toMatch(/: 0 of \d+ sentences would survive/);
+  });
+  it('SF-R2: the trivia filter vetoes a whole sentence ("dining hall" kills the Kessler Farm)', () => {
+    const r = A('Every first-year spends a week at the Kessler Farm, and the dining hall serves what they grow. We prepare you for the future.');
+    expect(r.buriedLede).not.toBeNull();
+  });
+});
+
+// Final sprint 2 gate: regression from 876ebc0 (bare "pledge" / "transfer agreements" added to the policy pattern, w3, no detail needed).
+describe('R11 sprint 2 final gate projector bugs (it.fails until fixed)', () => {
+  it('MF-F1: "We pledge to help every student succeed" is a promise, not "a published policy" or "the proof"', () => {
+    const r = A('We pledge to help every student succeed. Our vibrant community welcomes you.');
+    expect(r.buriedLede).toBeNull();
+    expect(r.diagnosis.line).not.toMatch(/you opened with the proof/);
+  });
+  it('MF-F1: "transfer agreements with many schools" is not a policy lede', () => {
+    expect(A('We have transfer agreements with many schools. You will thrive here.').buriedLede).toBeNull();
+  });
+});
+
+// Engine-only confirm after 3aef714: MF-F1 fixed. Residual: "100%" is always strong proof (numberWeight: % => 1),
+// so it satisfies needsStrong and scores slogans Unmistakable.
+describe('R11 sprint 2 engine confirm (it.fails until fixed)', () => {
+  it('MF-F2: "100% commitment" is not a published policy or proof', () => {
+    const r = A('Our pledge to you: 100% commitment, every single day.');
+    expect(r.buriedLede).toBeNull();
+    expect(r.score).toBeLessThan(65);
+  });
+  it('MF-F2: "100% real" is not Unmistakable', () => {
+    expect(A('Our commitment to you is 100% real.').score).toBeLessThan(65);
+  });
+});
+
+// Final gate on REAL copy (T0 captured page text, school names stripped or replaced with fictional ones).
+// These are embarrassing on realistic pastes and block the engine under the TL's real-copy bar.
+describe('R11 real-copy bugs (it.fails until fixed)', () => {
+  it('RC-1: a site tool ("Program Finder") is not a named program or the best detail', () => {
+    const r = A('We prepare you for a meaningful career. Use our Program Finder to explore our 200+ undergraduate and graduate programs, including in-person, hybrid, and online options.');
+    expect(r.buriedLede?.detail).not.toBe('Program Finder');
+  });
+  it('RC-2: "programs designed to ignite your ambition" is boilerplate, not a mechanism, and never a clause starting with "and"', () => {
+    const r = A('Our programs connect you with mentors who care. Explore over 150 undergraduate, graduate, and certificate programs designed to ignite your ambition.');
+    expect(r.buriedLede).toBeNull();
+  });
+  it('RC-3: another organization named in a student profile ("a stint with the Peace Corps") is not your best detail', () => {
+    const r = A('Welcome to a university unlike any other. Profiles in excellence Sam Ortiz ’26 A double major who tutored peers, earned his department’s service award and played ultimate frisbee, he aims to work for the Foreign Service after a stint with the Peace Corps.');
+    expect(r.buriedLede?.detail).not.toBe('the Peace Corps');
+  });
+});

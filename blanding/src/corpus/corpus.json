@@ -1,0 +1,223 @@
+{
+ "meta": {
+  "source": "blanding-t0 (Blanding 2.0 / T0) reports/agreement_ring150.json, reports/ring150/proof_kind.json",
+  "schools": 150,
+  "sampleNote": "150 schools, not a pure random sample: the wide25 test set + 15 lowest + 15 highest ranked + 95 seeded random (seed 20261026), drawn from 562 captured higher ed sites. Each page was read by two AI readers, Sonnet 4.6 and Opus 4.6, at temperature 0; only promises both readers agreed on are counted. Theme share = schools with an agreed promise in that theme / 150 schools with any agreed promise (barnard.edu had none). Support shares are over 347 agreed promises. Proof kinds count 582 evidence spans from both readers, labelled by a Haiku pass; T0 kinds map to engine kinds as operational_practice=operating_mechanism, documented_outcome=reported_outcome, funded_commitment=published_policy, documented_experience=example_or_story, restated_claim and third_party_recognition unchanged, announced_intention has no engine equivalent (engineKind null). Examples are verbatim agreed sentences with no digits, names or places.",
+  "generated": "2026-10-26",
+  "files": [
+   "reports/agreement_ring150.json",
+   "reports/ring150/proof_kind.json",
+   "reports/wide25/proof_kind.json",
+   "HANDOFF.md"
+  ]
+ },
+ "themes": [
+  {
+   "id": "access / affordability",
+   "label": "Access and affordability",
+   "count": 80,
+   "share": 0.533,
+   "examples": [
+    "Financial worries shouldn't hold you back.",
+    "An affordable college education is not one-size-fits-all.",
+    "When we say \"affordable,\" we mean it.",
+    "You can put a price on quality.",
+    "Life's busy and you've got bills to pay."
+   ]
+  },
+  {
+   "id": "career outcomes",
+   "label": "Career outcomes",
+   "count": 59,
+   "share": 0.393,
+   "examples": [
+    "Step effortlessly into your career right after graduation.",
+    "Complete a required internship experience so you're equipped with real-work experience.",
+    "That means we are dedicated to making sure you achieve your goals and graduate with skills for success.",
+    "The ongoing success of our students beyond graduation is proof positive that you can confidently pursue your education here."
+   ]
+  },
+  {
+   "id": "belonging / community",
+   "label": "Belonging and community",
+   "count": 32,
+   "share": 0.213,
+   "examples": [
+    "Great things happen when you're part of a community that believes in you.",
+    "Here, you'll find community, grow in your faith, and make unforgettable memories along the way.",
+    "Here, you'll build lifelong friendships, create lasting memories and find a place that truly feels like home.",
+    "Our students know they belong to a diverse and inclusive community, free to explore and express their individuality.",
+    "From the moment you arrive on our beautiful campus, you'll belong to a community that challenges you, supports you and wants the best for you."
+   ]
+  },
+  {
+   "id": "hands-on / real-world",
+   "label": "Hands-on, real-world learning",
+   "count": 32,
+   "share": 0.213,
+   "examples": [
+    "Dream it, learn it, do it.",
+    "It's not just our motto, it's our practice.",
+    "Leaving your comfort zone to land somewhere better.",
+    "Our nationally recognized programs connect learning to the needs of a fast-growing region.",
+    "Our students unleash their potential through hands-on learning, research opportunities, study abroad programs, and more."
+   ]
+  },
+  {
+   "id": "better world / purpose",
+   "label": "A better world and purpose",
+   "count": 31,
+   "share": 0.207,
+   "examples": [
+    "This is bigger than a degree.",
+    "We pursue excellence for a purpose.",
+    "One that is poised for growth, innovation, and opportunity.",
+    "They come here to build lifelong connections and find a community of kindred spirits focused on the greater good.",
+    "Our students, faculty and staff are driven by the idea that their work will have an impact in the world."
+   ]
+  },
+  {
+   "id": "your own path / flexibility",
+   "label": "Your own path and flexibility",
+   "count": 31,
+   "share": 0.207,
+   "examples": [
+    "Find the program that's right for you.",
+    "We can help you reach your goals.",
+    "You want a degree, we've got you covered.",
+    "Working closely with a faculty advisor, our students choose what they study.",
+    "Your college journey is unique, and that is what makes it meaningful."
+   ]
+  },
+  {
+   "id": "personal attention",
+   "label": "Personal attention",
+   "count": 21,
+   "share": 0.14,
+   "examples": [
+    "Big enough to take you anywhere.",
+    "We have small classes to ensure you get individualized attention.",
+    "We know students by name and provide mentorship through relationships that last a lifetime.",
+    "Our low student-to-faculty ratio means you will get the individual attention and mentoring you need to succeed.",
+    "Study with the best at a place where you won't just be a number or a grade."
+   ]
+  },
+  {
+   "id": "tradition / values / faith",
+   "label": "Tradition, values and faith",
+   "count": 19,
+   "share": 0.127,
+   "examples": [
+    "We're here to prepare you not only for a career, but for a calling.",
+    "Here, you're surrounded by people who genuinely care, encourage your dreams, and celebrate your journey."
+   ]
+  },
+  {
+   "id": "prestige / rankings",
+   "label": "Prestige and rankings",
+   "count": 17,
+   "share": 0.113,
+   "examples": []
+  },
+  {
+   "id": "place",
+   "label": "Place",
+   "count": 9,
+   "share": 0.06,
+   "examples": []
+  },
+  {
+   "id": "innovation / future-ready",
+   "label": "Innovation and future-readiness",
+   "count": 8,
+   "share": 0.053,
+   "examples": []
+  },
+  {
+   "id": "rigor / academic excellence",
+   "label": "Rigor and academic excellence",
+   "count": 6,
+   "share": 0.04,
+   "examples": [
+    "It's hard work, and it's personal.",
+    "We take you seriously as scholars and as thinkers."
+   ]
+  },
+  {
+   "id": "creativity",
+   "label": "Creativity",
+   "count": 2,
+   "share": 0.013,
+   "examples": []
+  }
+ ],
+ "support": {
+  "backed": 0.781,
+  "claim_only": 0.107,
+  "split": 0.112
+ },
+ "proofKinds": [
+  {
+   "kind": "operational_practice",
+   "label": "Operating practice",
+   "engineKind": "operating_mechanism",
+   "count": 130,
+   "share": 0.223
+  },
+  {
+   "kind": "restated_claim",
+   "label": "Restates the claim",
+   "engineKind": "restated_claim",
+   "count": 109,
+   "share": 0.187
+  },
+  {
+   "kind": "funded_commitment",
+   "label": "Funded commitment",
+   "engineKind": "published_policy",
+   "count": 93,
+   "share": 0.16
+  },
+  {
+   "kind": "documented_outcome",
+   "label": "Documented outcome",
+   "engineKind": "reported_outcome",
+   "count": 83,
+   "share": 0.143
+  },
+  {
+   "kind": "third_party_recognition",
+   "label": "Third-party recognition",
+   "engineKind": "third_party_recognition",
+   "count": 79,
+   "share": 0.136
+  },
+  {
+   "kind": "documented_experience",
+   "label": "Documented experience",
+   "engineKind": "example_or_story",
+   "count": 63,
+   "share": 0.108
+  },
+  {
+   "kind": "announced_intention",
+   "label": "Announced intention",
+   "engineKind": null,
+   "count": 25,
+   "share": 0.043
+  }
+ ],
+ "proofLocation": {
+  "homepage": 11,
+  "oneClick": 160,
+  "twoClicks": 68,
+  "total": 239,
+  "source": "T0 reports/ring150/proof_kind.json, 'details' (depth 0/1/2 clicks from the homepage) over the 150-school sample. The wide25 file reports/wide25/proof_kind.json gives 3 / 38 / 16 of 57, which matches HANDOFF.md 'Findings worth keeping (wide25)' exactly (verified).",
+  "wide25": {
+   "homepage": 3,
+   "oneClick": 38,
+   "twoClicks": 16,
+   "total": 57
+  }
+ }
+}
