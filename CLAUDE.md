@@ -239,3 +239,5 @@ Add to this list whenever a mistake is found and fixed. One line for what went w
 - **`dynamicParams` and an empty `generateStaticParams` do not work with Cache Components.** It is turned off in `next.config.ts`. Rule: do not turn `cacheComponents` on.
 - **Controls in a bottom sheet hid Reset and Randomize below the fold.** Rule: primary actions go at the top of a scrolling sheet.
 - **A script outside the repo could not import `playwright`.** Rule: keep Playwright scripts inside the repo (or `scripts/`) so module resolution works.
+- **A label positioned over a clipped image stayed whole and spilled onto the other photo.** Rule: clip the layer that holds both the image and its overlay, not the image alone.
+- **Generated images came back from the connector as 200px previews only.** Full-size files could not be fetched from the session. Rule: check the pixel size of any generated or downloaded image (`file <path>`) before building on it, and say so if it is a placeholder.
