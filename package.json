@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "check": "node scripts/check-prototypes.mjs",
     "thumbnails": "node scripts/thumbnails.mjs",
     "verify": "npm run lint && npm run typecheck && npm run check && npm run build"

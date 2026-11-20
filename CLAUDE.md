@@ -241,3 +241,4 @@ Add to this list whenever a mistake is found and fixed. One line for what went w
 - **A script outside the repo could not import `playwright`.** Rule: keep Playwright scripts inside the repo (or `scripts/`) so module resolution works.
 - **A label positioned over a clipped image stayed whole and spilled onto the other photo.** Rule: clip the layer that holds both the image and its overlay, not the image alone.
 - **Generated images came back from the connector as 200px previews only.** Full-size files could not be fetched from the session. Rule: check the pixel size of any generated or downloaded image (`file <path>`) before building on it, and say so if it is a placeholder.
+- **CI type-check failed on `import photo from "./photo.jpg"` while passing locally.** The image module types live in `next-env.d.ts`, which is generated and gitignored, so a fresh checkout has none. Rule: `npm run typecheck` runs `next typegen` first; never call bare `tsc` in CI.
